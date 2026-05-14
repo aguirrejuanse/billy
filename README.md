@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Billy — Accounts Payable Manager
 
-## Getting Started
+Billy is an accounts payable tool for operations teams that need to track, approve, and pay vendor invoices. The core insight: **a Bill and a Payment are two distinct domain objects with independent lifecycles**. A Bill is an accounting fact (the invoice). A Payment is the fund transfer. Conflating them leads to broken workflows — Billy keeps them separate from the start.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Workflows Prioritized
+
+### Bill Lifecycle
+
+The full AP approval flow:
+
+```
+Draft → Awaiting Approval → Approved → [Payment auto-created]
+                         ↘ Rejected → Archived
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Bills start as drafts, get submitted for approval, and transition atomically: approving a bill creates a scheduled payment in the same database transaction. No payment without an approved bill. No approved bill without a payment.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Payment Lifecycle
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+Scheduled → Initiated → Paid
+                     ↘ Failed → Scheduled (retry)
+```
 
-## Learn More
+Payments are first-class objects. Finance teams can track status, mark as paid, and retry failures — independently of the bill that originated them.
 
-To learn more about Next.js, take a look at the following resources:
+### AP Aging Report
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Overdue bills grouped by aging bucket: 0–30, 31–60, 61–90, 90+ days. This is the report every AP team actually uses to manage cash flow. Including it signals product understanding, not just CRUD fluency.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Supporting features
 
-## Deploy on Vercel
+- Vendors CRUD (name, email, default payment method)
+- Bills table with tabs as work queues: Drafts · Awaiting Approval · For Payment · History
+- Filters: status, vendor, amount range, due date range — stored in URL params (bookmarkable, server-side)
+- Sortable columns: vendor, amount, status, due date
+- Bill detail page with contextual actions per status
+- Line items per bill
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## What's Out and Why
+
+| Feature                  | Why excluded                                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Invoice scanning (OCR)   | Too large a surface for a demo — would shift focus from the AP workflow to file processing infrastructure.   |
+| Real ACH / wire payments | Would require setting up a payment gateway. No time, and not what this demo is evaluating.                   |
+| Multi-approver chains    | Single-user demo — one person plays all roles. The model supports adding role checks without schema changes. |
+| Bulk actions             | Low value with demo-scale data. Natural v2 once the single-record flow is solid.                             |
+| CSV export               | v2.                                                                                                          |
+
+**On approval model:** In production, the approver would be a different user than the bill creator. Billy allows self-approval for demo simplicity. This is noted explicitly — the data model supports adding a role check at the API layer without schema changes.
+
+---
+
+## Architecture & Data Model
+
+### Stack
+
+| Layer     | Choice                     | Reason                                                            |
+| --------- | -------------------------- | ----------------------------------------------------------------- |
+| Framework | Next.js 16 App Router      | API Routes included — one repo, no CORS, typed backend            |
+| UI        | shadcn/ui + Tailwind 4     | Clean design system close to Ramp/Linear aesthetic                |
+| ORM       | Drizzle ORM                | Schema in pure TypeScript, no codegen step, type-safe queries     |
+| Database  | Neon (serverless Postgres) | Free tier, Vercel-compatible, no connection pooling config needed |
+| Auth      | Clerk                      | Production-grade auth in under 20 minutes                         |
+
+### Key decisions
+
+**`amount` as `numeric(12,2)`, not `float`**
+Floating-point arithmetic is wrong for money. `numeric` gives exact decimal storage at the Postgres layer. Drizzle maps it to `string` in TypeScript — we parse to `number` only at the formatting layer.
+
+**`status` as Postgres enum, not a string column**
+Enums enforce valid values at the database level. Transition gating lives in the API (`POST /api/bills/[id]/actions`) — invalid transitions return `400` with a clear error message.
+
+**Approve as an atomic DB transaction**
+`bill.status → approved` and `INSERT INTO payments` happen in a single transaction. Either both succeed or neither does. No approved bill without a payment; no orphaned payment without an approved bill.
+
+**URL as filter state**
+Filters are stored in URL search params, not React state. The Server Component reads them directly and filters server-side. Bookmarkable, shareable, and no client-side waterfall.
+
+**`bill_line_items` with CASCADE**
+Deleting a bill deletes its line items. No orphaned rows, no soft-delete complexity at this scope.
+
+### Data model
+
+```
+users         — clerk_id, name, email
+vendors       — name, email, payment_method
+bills         — vendor_id, owner_id, number, amount, status, invoice_date, due_date, payment_type
+bill_line_items — bill_id (CASCADE), description, amount, account_code
+payments      — bill_id, vendor_id, amount, status, scheduled_date, payment_method
+```
+
+Types are inferred directly from the Drizzle schema via `InferSelectModel` — single source of truth, no duplication between schema and TypeScript types.
