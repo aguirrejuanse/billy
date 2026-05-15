@@ -4,8 +4,7 @@ export type { Bill, BillLineItem, Payment, User, Vendor };
 export type { NewBill, NewPayment, NewVendor } from "@/db/schema";
 
 export type BillWithRelations = Bill & {
-  vendor: Vendor;
-  owner: User;
+  vendor: Vendor | null;
   lineItems: BillLineItem[];
   payment: Payment | null;
 };

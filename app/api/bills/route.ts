@@ -22,7 +22,6 @@ export async function GET(_request: NextRequest) {
       where: eq(billsTable.ownerId, user.id),
       with: {
         vendor: true,
-        owner: true,
         lineItems: true,
         payment: true,
       },

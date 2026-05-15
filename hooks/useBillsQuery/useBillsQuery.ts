@@ -7,5 +7,6 @@ export function useBillsQuery() {
     queryKey: ["bills"],
     queryFn: getBillsService,
     placeholderData: [],
+    staleTime: 30000,
   });
 }

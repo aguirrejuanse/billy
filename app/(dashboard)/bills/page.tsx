@@ -2,18 +2,12 @@
 
 import { useBillsQuery } from "@/hooks/useBillsQuery";
 import { BillsTable, BillsTableSkeleton } from "@/components/bills/BillsTable";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BillsPage() {
   const { data: bills, isPlaceholderData, error } = useBillsQuery();
 
   if (isPlaceholderData) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-4 w-16" />
-        <BillsTableSkeleton />
-      </div>
-    );
+    return <BillsTableSkeleton />;
   }
 
   if (error) {

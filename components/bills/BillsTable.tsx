@@ -28,31 +28,36 @@ const COLUMNS = (
 
 export function BillsTableSkeleton() {
   return (
-    <Table>
-      <TableHeader>{COLUMNS}</TableHeader>
-      <TableBody>
-        <TableRow>
-          <TableCell>
-            <Skeleton className="h-4 w-28" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="h-4 w-20" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="h-4 w-48" />
-          </TableCell>
-          <TableCell className="text-right">
-            <Skeleton className="h-4 w-16 ml-auto" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="h-5 w-20 rounded-full" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="h-4 w-24" />
-          </TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
+    <div className="space-y-4">
+      <Skeleton className="h-4 w-16" />
+      <Table>
+        <TableHeader>{COLUMNS}</TableHeader>
+        <TableBody>
+          {[...Array(6)].map((_, i) => (
+            <TableRow key={i}>
+              <TableCell>
+                <Skeleton className="h-4 w-28" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-20" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-48" />
+              </TableCell>
+              <TableCell className="text-right">
+                <Skeleton className="h-4 w-16 ml-auto" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-24" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
