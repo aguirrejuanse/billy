@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paymentMethodEnum, paymentStatusEnum } from "@/db/schema";
+import { currencyEnum, paymentMethodEnum, paymentStatusEnum } from "@/db/schema";
 
 const nonEmptyString = z.string().min(1);
 const positiveAmount = z.coerce.number().positive();
@@ -14,7 +14,7 @@ export const createBillSchema = z.object({
   vendorId: z.uuid(),
   number: nonEmptyString,
   amount: positiveAmount,
-  currency: z.string().default("USD"),
+  currency: z.enum(currencyEnum.enumValues).default("USD"),
   invoiceDate: nonEmptyString,
   dueDate: nonEmptyString,
   description: z.string().optional(),
@@ -41,5 +41,6 @@ export const billActionSchema = z.object({
 
 export type CreateVendorInput = z.infer<typeof createVendorSchema>;
 export type CreateBillInput = z.infer<typeof createBillSchema>;
+export type CreateBillFormInput = z.input<typeof createBillSchema>;
 export type UpdatePaymentStatusInput = z.infer<typeof updatePaymentStatusSchema>;
 export type BillActionInput = z.infer<typeof billActionSchema>;
