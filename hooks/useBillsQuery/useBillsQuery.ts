@@ -6,6 +6,6 @@ export function useBillsQuery() {
   return useQuery<BillWithRelations[]>({
     queryKey: ["bills"],
     queryFn: getBillsService,
-    initialData: [],
+    placeholderData: [],
   });
 }

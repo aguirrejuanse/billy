@@ -34,7 +34,7 @@ export function BillsTable({ bills }: BillsTableProps) {
       <TableBody>
         {bills.map((bill) => (
           <TableRow key={bill.id}>
-            <TableCell className="font-medium">{bill.vendor.name}</TableCell>
+            <TableCell className="font-medium">{bill.vendor?.name ?? "—"}</TableCell>
             <TableCell className="font-mono text-xs">{bill.number}</TableCell>
             <TableCell className="text-muted-foreground text-sm">
               {bill.description ?? "—"}

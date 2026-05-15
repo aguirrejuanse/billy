@@ -17,9 +17,9 @@ export default function BillsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{bills.length} bills</p>
+        <p className="text-sm text-muted-foreground">{bills?.length ?? 0} bills</p>
       </div>
-      <BillsTable bills={bills} />
+      <BillsTable bills={bills ?? []} />
     </div>
   );
 }
