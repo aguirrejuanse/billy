@@ -1,13 +1,19 @@
 "use client";
 
 import { useBillsQuery } from "@/hooks/useBillsQuery";
-import { BillsTable } from "@/components/bills/BillsTable";
+import { BillsTable, BillsTableSkeleton } from "@/components/bills/BillsTable";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BillsPage() {
-  const { data: bills, isLoading, error } = useBillsQuery();
+  const { data: bills, isPlaceholderData, error } = useBillsQuery();
 
-  if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading bills...</div>;
+  if (isPlaceholderData) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-4 w-16" />
+        <BillsTableSkeleton />
+      </div>
+    );
   }
 
   if (error) {

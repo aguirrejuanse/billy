@@ -6,12 +6,54 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { BillStatusBadge } from "./BillStatusBadge";
 import type { BillWithRelations } from "@/types";
 
 interface BillsTableProps {
   bills: BillWithRelations[];
+}
+
+const COLUMNS = (
+  <TableRow>
+    <TableHead>Vendor</TableHead>
+    <TableHead>Bill #</TableHead>
+    <TableHead>Description</TableHead>
+    <TableHead className="text-right">Amount</TableHead>
+    <TableHead>Status</TableHead>
+    <TableHead>Due Date</TableHead>
+  </TableRow>
+);
+
+export function BillsTableSkeleton() {
+  return (
+    <Table>
+      <TableHeader>{COLUMNS}</TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableCell>
+            <Skeleton className="h-4 w-28" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-20" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-48" />
+          </TableCell>
+          <TableCell className="text-right">
+            <Skeleton className="h-4 w-16 ml-auto" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-24" />
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  );
 }
 
 export function BillsTable({ bills }: BillsTableProps) {
@@ -21,16 +63,7 @@ export function BillsTable({ bills }: BillsTableProps) {
 
   return (
     <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Vendor</TableHead>
-          <TableHead>Bill #</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead className="text-right">Amount</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Due Date</TableHead>
-        </TableRow>
-      </TableHeader>
+      <TableHeader>{COLUMNS}</TableHeader>
       <TableBody>
         {bills.map((bill) => (
           <TableRow key={bill.id}>
