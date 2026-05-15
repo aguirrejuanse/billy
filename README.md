@@ -95,3 +95,17 @@ payments      — bill_id, vendor_id, amount, status, scheduled_date, payment_me
 ```
 
 Types are inferred directly from the Drizzle schema via `InferSelectModel` — single source of truth, no duplication between schema and TypeScript types.
+
+---
+
+## User Stories
+
+| ID    | Story                                                                                                      | Status  |
+| ----- | ---------------------------------------------------------------------------------------------------------- | ------- |
+| US-00 | As a developer, I want realistic seed data so I can develop and demo the system without manual data entry. | ✅ Done |
+| US-01 | As an AP Manager, I want to see a list of all my bills so I can have an overview of pending payables.      | ✅ Done |
+| US-02 | As an AP Manager, I want to create a new bill with line items so I can register vendor invoices.           | 🔲 Todo |
+| US-03 | As an AP Manager, I want to filter bills by status and vendor so I can prioritize my work queue.           | 🔲 Todo |
+| US-04 | As an AP Manager, I want to view a bill's full detail including line items and payment info.               | 🔲 Todo |
+| US-05 | As an AP Manager, I want to approve or reject a bill so I can control which invoices get paid.             | 🔲 Todo |
+| US-06 | As a Finance Manager, I want an AP Aging Report grouped by overdue buckets so I can manage cash flow risk. | 🔲 Todo |
