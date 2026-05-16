@@ -18,25 +18,30 @@ const billSchemaErrorMessages = {
   description: "Description is required",
 };
 
-export const createBillSchema = z.object({
-  vendorId: z.uuid({ error: billSchemaErrorMessages.vendorId }),
-  number: z.string().min(1, { message: billSchemaErrorMessages.number }),
-  amount: z.coerce.number().positive({ message: billSchemaErrorMessages.amount }),
-  currency: z.enum(currencyEnum.enumValues).default("USD"),
-  invoiceDate: z.string().min(1, { message: billSchemaErrorMessages.invoiceDate }),
-  dueDate: z.string().min(1, { message: billSchemaErrorMessages.dueDate }),
-  description: z.string().optional(),
-  paymentType: z.enum(paymentMethodEnum.enumValues),
-  lineItems: z
-    .array(
-      z.object({
-        description: z.string().min(1, { message: billSchemaErrorMessages.description }),
-        amount: z.coerce.number().positive({ message: billSchemaErrorMessages.amount }),
-        accountCode: z.string().optional(),
-      })
-    )
-    .optional(),
-});
+export const createBillSchema = z
+  .object({
+    vendorId: z.uuid({ error: billSchemaErrorMessages.vendorId }),
+    number: z.string().min(1, { message: billSchemaErrorMessages.number }),
+    amount: z.coerce.number().positive({ message: billSchemaErrorMessages.amount }),
+    currency: z.enum(currencyEnum.enumValues).default("USD"),
+    invoiceDate: z.string().min(1, { message: billSchemaErrorMessages.invoiceDate }),
+    dueDate: z.string().min(1, { message: billSchemaErrorMessages.dueDate }),
+    description: z.string().optional(),
+    paymentType: z.enum(paymentMethodEnum.enumValues),
+    lineItems: z
+      .array(
+        z.object({
+          description: z.string().min(1, { message: billSchemaErrorMessages.description }),
+          amount: z.coerce.number().positive({ message: billSchemaErrorMessages.amount }),
+          accountCode: z.string().optional(),
+        })
+      )
+      .optional(),
+  })
+  .refine((data) => data.dueDate >= data.invoiceDate, {
+    message: "Due date must be on or after invoice date",
+    path: ["dueDate"],
+  });
 
 export const updatePaymentStatusSchema = z.object({
   status: z.enum(paymentStatusEnum.enumValues),
