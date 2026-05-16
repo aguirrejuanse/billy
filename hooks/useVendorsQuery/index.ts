@@ -1,0 +1,1 @@
+export { useVendorsQuery } from "./useVendorsQuery";
