@@ -1,0 +1,319 @@
+openapi: 3.1.0
+info:
+  title: Billy AP Manager
+  version: 1.0.0
+  description: Accounts Payable manager API
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local dev
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Bill:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        vendorId:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+        number:
+          type: string
+        amount:
+          type: string
+          description: Numeric stored as string (numeric 12,2)
+        currency:
+          type: string
+          enum: [USD, EUR, ARS]
+        status:
+          type: string
+          enum: [draft, awaiting_approval, approved, rejected, archived]
+        invoiceDate:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        description:
+          type: string
+          nullable: true
+        paymentType:
+          type: string
+          enum: [ach, wire, check, card]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateBillBody:
+      type: object
+      required:
+        - vendorId
+        - number
+        - amount
+        - invoiceDate
+        - dueDate
+        - paymentType
+      properties:
+        vendorId:
+          type: string
+          format: uuid
+          example: "42a49c88-1a53-41ac-a6b1-69b12f31a53f"
+        number:
+          type: string
+          example: INV-001
+        amount:
+          type: number
+          minimum: 0.01
+          example: 1500.00
+        currency:
+          type: string
+          enum: [USD, EUR, ARS]
+          default: USD
+        invoiceDate:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: "2026-05-21"
+        dueDate:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: "2026-05-28"
+        description:
+          type: string
+          example: Office supplies Q2
+        paymentType:
+          type: string
+          enum: [ach, wire, check, card]
+          example: ach
+        lineItems:
+          type: array
+          items:
+            type: object
+            required:
+              - description
+              - amount
+            properties:
+              description:
+                type: string
+                example: Printer paper
+              amount:
+                type: number
+                minimum: 0.01
+                example: 250.00
+              accountCode:
+                type: string
+                example: "6100"
+
+    Vendor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        paymentMethod:
+          type: string
+          enum: [ach, wire, check, card]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+
+security:
+  - BearerAuth: []
+
+paths:
+  /bills:
+    get:
+      summary: List bills for the authenticated user
+      operationId: getBills
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Bill"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Unauthorized
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      summary: Create a new bill
+      operationId: createBill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBillBody"
+            examples:
+              valid:
+                summary: Valid bill with line items
+                value:
+                  vendorId: "42a49c88-1a53-41ac-a6b1-69b12f31a53f"
+                  number: INV-001
+                  amount: 1500.00
+                  currency: USD
+                  invoiceDate: "2026-05-21"
+                  dueDate: "2026-05-28"
+                  paymentType: ach
+                  description: Office supplies Q2
+                  lineItems:
+                    - description: Printer paper
+                      amount: 250.00
+                      accountCode: "6100"
+                    - description: Toner cartridges
+                      amount: 1250.00
+              invalid_date:
+                summary: Bad date format → 422
+                value:
+                  vendorId: "42a49c88-1a53-41ac-a6b1-69b12f31a53f"
+                  number: INV-002
+                  amount: 100
+                  invoiceDate: "not-a-date"
+                  dueDate: "2026-05-28"
+                  paymentType: ach
+              invalid_vendor:
+                summary: Non-existent vendor → 422
+                value:
+                  vendorId: "42a49c88-1a53-41ac-a6b1-69b12f31a53f" # Assuming this vendor ID does not exist in the system
+                  number: INV-003
+                  amount: 100
+                  invoiceDate: "2026-05-21"
+                  dueDate: "2026-05-28"
+                  paymentType: ach
+              duplicate_number:
+                summary: Duplicate bill number → 409
+                value:
+                  vendorId: "00000000-0000-0000-0000-000000000000"
+                  number: INV-001
+                  amount: 100
+                  invoiceDate: "2026-05-21"
+                  dueDate: "2026-05-28"
+                  paymentType: ach
+      responses:
+        "201":
+          description: Bill created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Bill"
+        "400":
+          description: Malformed JSON body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Invalid JSON body
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Bill number already exists for this user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Bill number already exists
+        "422":
+          description: Validation error or vendor not found
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorResponse"
+                  - type: object
+                    properties:
+                      error:
+                        type: array
+                        items:
+                          type: object
+              examples:
+                vendor_not_found:
+                  summary: Vendor not found
+                  value:
+                    error: Vendor not found
+                validation_error:
+                  summary: Zod validation issues
+                  value:
+                    error:
+                      - code: invalid_string
+                        path: [invoiceDate]
+                        message: Invalid date format (YYYY-MM-DD)
+        "500":
+          description: Internal server error
+
+  /vendors:
+    get:
+      summary: List all vendors
+      operationId: getVendors
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Vendor"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
