@@ -41,7 +41,13 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
   }, [vendors]);
 
   function onSubmit(data: CreateBillInput) {
-    createBill(data, { onSuccess });
+    if (isPending) return;
+    createBill(data, {
+      onSuccess: () => {
+        methods.reset();
+        onSuccess();
+      },
+    });
   }
 
   return (
