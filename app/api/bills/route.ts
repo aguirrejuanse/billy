@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { bills as billsTable, billLineItems as billLineItemsTable } from "@/db/schema";
+import {
+  bills as billsTable,
+  billLineItems as billLineItemsTable,
+  vendors as vendorsTable,
+} from "@/db/schema";
 import { createBillSchema } from "@/lib/validators";
 import { getAuthenticatedUser } from "@/lib/auth";
 
@@ -35,9 +39,30 @@ export async function POST(request: NextRequest) {
     const { user, error } = await getAuthenticatedUser();
     if (error) return error;
 
-    const parsed = createBillSchema.safeParse(await request.json());
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const parsed = createBillSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues }, { status: 422 });
+    }
+
+    const vendor = await db.query.vendors.findFirst({
+      where: eq(vendorsTable.id, parsed.data.vendorId),
+    });
+    if (!vendor) {
+      return NextResponse.json({ error: "Vendor not found" }, { status: 422 });
+    }
+
+    const existingBill = await db.query.bills.findFirst({
+      where: and(eq(billsTable.number, parsed.data.number), eq(billsTable.ownerId, user.id)),
+    });
+    if (existingBill) {
+      return NextResponse.json({ error: "Bill number already exists" }, { status: 409 });
     }
 
     const { lineItems, amount, ...billData } = parsed.data;
