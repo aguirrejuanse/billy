@@ -2,6 +2,71 @@
 
 Billy is an accounts payable tool for operations teams that need to track, approve, and pay vendor invoices. The core insight: **a Bill and a Payment are two distinct domain objects with independent lifecycles**. A Bill is an accounting fact (the invoice). A Payment is the fund transfer. Conflating them leads to broken workflows — Billy keeps them separate from the start.
 
+**Live demo:** https://billy-takehome.vercel.app/bills
+
+---
+
+## Setup
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm 10+
+- A [Neon](https://neon.tech) database
+- A [Clerk](https://clerk.com) application
+
+### Installation
+
+```bash
+pnpm install
+```
+
+### Environment Variables
+
+Copy `.env.example` to `.env.local` and fill in the values:
+
+```bash
+cp .env.example .env.local
+```
+
+| Variable                              | Description                                        |
+| ------------------------------------- | -------------------------------------------------- |
+| `DATABASE_URL`                        | Neon connection string                             |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`   | Clerk publishable key                              |
+| `CLERK_SECRET_KEY`                    | Clerk secret key                                   |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL`       | Sign-in route (default: `/sign-in`)                |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL`       | Sign-up route (default: `/sign-up`)                |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | Redirect after sign-in (default: `/bills`)         |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | Redirect after sign-up (default: `/bills`)         |
+| `NEXT_PUBLIC_APP_URL`                 | Base URL of the app (e.g. `http://localhost:3000`) |
+
+### Database
+
+```bash
+pnpm db:push   # apply schema to Neon
+pnpm db:seed   # seed test data
+```
+
+### Run
+
+```bash
+pnpm dev       # http://localhost:3000
+```
+
+---
+
+## API Documentation
+
+The full spec is in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.1.0).
+
+| Method | Path           | Description                                  |
+| ------ | -------------- | -------------------------------------------- |
+| GET    | `/api/bills`   | List all bills for the authenticated user    |
+| POST   | `/api/bills`   | Create a new bill (with optional line items) |
+| GET    | `/api/vendors` | List all vendors                             |
+
+All endpoints require a valid Clerk session. Responses follow `{ data }` on success and `{ error }` on failure.
+
 ---
 
 ## Workflows Prioritized
@@ -104,7 +169,7 @@ Types are inferred directly from the Drizzle schema via `InferSelectModel` — s
 | ----- | ---------------------------------------------------------------------------------------------------------- | ------- |
 | US-00 | As a developer, I want realistic seed data so I can develop and demo the system without manual data entry. | ✅ Done |
 | US-01 | As an AP Manager, I want to see a list of all my bills so I can have an overview of pending payables.      | ✅ Done |
-| US-02 | As an AP Manager, I want to create a new bill with line items so I can register vendor invoices.           | 🔲 Todo |
+| US-02 | As an AP Manager, I want to create a new bill with line items so I can register vendor invoices.           | ✅ Done |
 | US-03 | As an AP Manager, I want to filter bills by status and vendor so I can prioritize my work queue.           | 🔲 Todo |
 | US-04 | As an AP Manager, I want to view a bill's full detail including line items and payment info.               | 🔲 Todo |
 | US-05 | As an AP Manager, I want to approve or reject a bill so I can control which invoices get paid.             | 🔲 Todo |
