@@ -40,6 +40,10 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
     }
   }, [vendors]);
 
+  const errorMessage = mutationError
+    ? (mutationError.response?.data?.error ?? "Failed to create bill. Please try again.")
+    : null;
+
   function onSubmit(data: CreateBillInput) {
     if (isPending) return;
     createBill(data, {
@@ -94,15 +98,12 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
           <LineItemsField />
         </div>
 
-        {mutationError && (
-          <p className="text-xs text-destructive">Failed to create bill. Please try again.</p>
-        )}
-
-        <div className="flex justify-end border-t pt-4">
+        <div className="flex items-center gap-3 justify-between border-t pt-4">
+          <p className="text-xs text-destructive flex-1 min-w-0 truncate">{errorMessage}</p>
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
+            className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
           >
             {isPending ? "Creating…" : "Create Bill"}
           </button>
