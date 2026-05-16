@@ -13,9 +13,9 @@ const billSchemaErrorMessages = {
   vendorId: "Please select a vendor",
   number: "Bill number is required",
   amount: "Amount must be greater than zero",
-  invoiceDate: "Invoice date is required",
-  dueDate: "Due date is required",
-  description: "Description is required",
+  invoiceDate: "Invalid invoice date",
+  dueDate: "Invalid due date",
+  lineItemDescription: "Line item description is required",
 };
 
 export const createBillSchema = z
@@ -24,14 +24,14 @@ export const createBillSchema = z
     number: z.string().min(1, { message: billSchemaErrorMessages.number }),
     amount: z.coerce.number().positive({ message: billSchemaErrorMessages.amount }),
     currency: z.enum(currencyEnum.enumValues).default("USD"),
-    invoiceDate: z.string().min(1, { message: billSchemaErrorMessages.invoiceDate }),
-    dueDate: z.string().min(1, { message: billSchemaErrorMessages.dueDate }),
+    invoiceDate: z.iso.date({ error: billSchemaErrorMessages.invoiceDate }),
+    dueDate: z.iso.date({ error: billSchemaErrorMessages.dueDate }),
     description: z.string().optional(),
     paymentType: z.enum(paymentMethodEnum.enumValues),
     lineItems: z
       .array(
         z.object({
-          description: z.string().min(1, { message: billSchemaErrorMessages.description }),
+          description: z.string().min(1, { message: billSchemaErrorMessages.lineItemDescription }),
           amount: z.coerce.number().positive({ message: billSchemaErrorMessages.amount }),
           accountCode: z.string().optional(),
         })
