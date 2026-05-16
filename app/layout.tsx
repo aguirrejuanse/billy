@@ -17,14 +17,11 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <ReactQueryProvider>
-        <html
-          lang="en"
-          className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
-        >
-          <body className="min-h-full flex flex-col">{children}</body>
-        </html>
-      </ReactQueryProvider>
+      <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}>
+        <body className="min-h-full flex flex-col">
+          <ReactQueryProvider>{children}</ReactQueryProvider>
+        </body>
+      </html>
     </ClerkProvider>
   );
 }
