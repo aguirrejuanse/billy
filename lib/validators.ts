@@ -9,7 +9,7 @@ export const createVendorSchema = z.object({
   paymentMethod: z.enum(paymentMethodEnum.enumValues),
 });
 
-const billSchemaErrorMessages = {
+export const billSchemaErrorMessages = {
   vendorId: "Please select a vendor",
   number: "Bill number is required",
   amount: "Amount must be greater than zero",
