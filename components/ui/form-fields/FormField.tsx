@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormContext } from "react-hook-form";
+import { useFormContext, get } from "react-hook-form";
 
 interface FormFieldProps {
   name: string;
@@ -13,7 +13,7 @@ export function FormField({ name, label, optional, children }: FormFieldProps) {
   const {
     formState: { errors },
   } = useFormContext();
-  const error = errors[name];
+  const error = get(errors, name);
 
   return (
     <div className="space-y-1">
