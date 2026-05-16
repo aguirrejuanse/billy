@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
+import { cn } from "@/lib/utils";
 import { FormField } from "./FormField";
 
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -17,7 +18,10 @@ export function FormInput({ name, label, optional, ...inputProps }: FormInputPro
       <input
         {...register(name)}
         {...inputProps}
-        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+        className={cn(
+          "w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50",
+          inputProps.className
+        )}
       />
     </FormField>
   );
