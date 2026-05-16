@@ -2,6 +2,7 @@ import { pgTable, pgEnum, uuid, text, numeric, date, timestamp } from "drizzle-o
 import { relations } from "drizzle-orm";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
+export const currencyEnum = pgEnum("currency", ["USD", "EUR", "ARS"]);
 export const paymentMethodEnum = pgEnum("payment_method", ["ach", "wire", "check", "card"]);
 
 export const billStatusEnum = pgEnum("bill_status", [
@@ -47,7 +48,7 @@ export const bills = pgTable("bills", {
     .references(() => users.id),
   number: text("number").notNull(),
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
-  currency: text("currency").notNull().default("USD"),
+  currency: currencyEnum("currency").notNull().default("USD"),
   status: billStatusEnum("status").notNull().default("draft"),
   invoiceDate: date("invoice_date").notNull(),
   dueDate: date("due_date").notNull(),

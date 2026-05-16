@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 export const api = axios.create({
   baseURL: "/api",
@@ -6,3 +6,8 @@ export const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+interface ApiErrorResponse {
+  error: string;
+}
+export type ApiError = AxiosError<ApiErrorResponse>;
