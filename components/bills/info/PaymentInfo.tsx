@@ -1,20 +1,11 @@
-import { formatCurrency, formatDate } from "@/lib/formatters";
+import {
+  formatCurrency,
+  formatDate,
+  paymentMethodLabels,
+  paymentStatusLabels,
+} from "@/lib/formatters";
 import type { Payment } from "@/types";
 import { Field } from "./Field";
-
-const paymentMethodLabels: Record<string, string> = {
-  ach: "ACH",
-  wire: "Wire",
-  check: "Check",
-  card: "Card",
-};
-
-const paymentStatusLabels: Record<string, string> = {
-  scheduled: "Scheduled",
-  initiated: "Initiated",
-  paid: "Paid",
-  failed: "Failed",
-};
 
 interface PaymentInfoProps {
   payment: Payment;

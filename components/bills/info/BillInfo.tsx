@@ -1,13 +1,11 @@
-import { formatCurrency, formatDate, formatRelativeDate } from "@/lib/formatters";
+import {
+  formatCurrency,
+  formatDate,
+  formatRelativeDate,
+  paymentMethodLabels,
+} from "@/lib/formatters";
 import type { BillWithRelations } from "@/types";
 import { Field } from "./Field";
-
-const paymentMethodLabels: Record<string, string> = {
-  ach: "ACH",
-  wire: "Wire",
-  check: "Check",
-  card: "Card",
-};
 
 interface BillInfoProps {
   bill: BillWithRelations;
