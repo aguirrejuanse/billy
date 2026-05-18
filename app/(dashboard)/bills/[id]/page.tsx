@@ -4,6 +4,7 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useBillQuery } from "@/hooks/useBillQuery";
 import { BillDetail, BillDetailSkeleton } from "@/components/bills/BillDetail";
+import { BillError } from "@/components/bills/info/BillError";
 import { BillDetailParams } from "@/types";
 
 interface BillDetailPageProps {
@@ -17,19 +18,7 @@ export default function BillDetailPage({ params }: BillDetailPageProps) {
 
   if (isLoading) return <BillDetailSkeleton />;
 
-  if (error || !bill) {
-    return (
-      <div className="flex flex-col items-start gap-2">
-        <p className="text-sm text-destructive">Bill not found.</p>
-        <button
-          onClick={() => router.push("/bills")}
-          className="text-sm font-medium underline underline-offset-4 cursor-pointer"
-        >
-          Back to bills
-        </button>
-      </div>
-    );
-  }
+  if (error || !bill) return <BillError onBack={() => router.push("/bills")} />;
 
   return <BillDetail bill={bill} onBack={() => router.back()} />;
 }

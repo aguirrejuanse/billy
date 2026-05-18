@@ -1,31 +1,11 @@
 "use client";
 
-import { formatCurrency, formatDate, formatRelativeDate } from "@/lib/formatters";
-import { BillStatusBadge } from "./BillStatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { BillStatusBadge } from "./BillStatusBadge";
+import { BillInfo } from "./info/BillInfo";
+import { PaymentInfo } from "./info/PaymentInfo";
+import { LineItemsInfo } from "./info/LineItemsInfo";
 import type { BillWithRelations } from "@/types";
-
-const paymentMethodLabels: Record<string, string> = {
-  ach: "ACH",
-  wire: "Wire",
-  check: "Check",
-  card: "Card",
-};
-
-const paymentStatusLabels: Record<string, string> = {
-  scheduled: "Scheduled",
-  initiated: "Initiated",
-  paid: "Paid",
-  failed: "Failed",
-};
 
 interface BillDetailProps {
   bill: BillWithRelations;
@@ -72,89 +52,13 @@ export function BillDetail({ bill, onBack }: BillDetailProps) {
         <BillStatusBadge status={bill.status} />
       </div>
 
-      <div className="grid grid-cols-2 gap-x-8 gap-y-4 border rounded-lg p-4">
-        <Field label="Amount" value={formatCurrency(bill.amount, bill.currency)} />
-        <Field label="Currency" value={bill.currency} />
-        <Field label="Invoice Date" value={formatDate(bill.invoiceDate)} />
-        <Field
-          label="Due Date"
-          value={`${formatDate(bill.dueDate)} · ${formatRelativeDate(bill.dueDate)}`}
-        />
-        <Field
-          label="Payment Type"
-          value={paymentMethodLabels[bill.paymentType] ?? bill.paymentType}
-        />
-        {bill.description && (
-          <Field label="Description" value={bill.description} className="col-span-2" />
-        )}
-      </div>
+      <BillInfo bill={bill} />
 
-      {bill.payment && (
-        <section className="space-y-2">
-          <h2 className="text-sm font-medium">Payment</h2>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-4 border rounded-lg p-4">
-            <Field
-              label="Status"
-              value={paymentStatusLabels[bill.payment.status] ?? bill.payment.status}
-            />
-            <Field
-              label="Method"
-              value={paymentMethodLabels[bill.payment.paymentMethod] ?? bill.payment.paymentMethod}
-            />
-            <Field label="Amount" value={formatCurrency(bill.payment.amount, bill.currency)} />
-            <Field label="Scheduled Date" value={formatDate(bill.payment.scheduledDate)} />
-            {bill.payment.paidAt && (
-              <Field label="Paid At" value={formatDate(bill.payment.paidAt)} />
-            )}
-            {bill.payment.notes && (
-              <Field label="Notes" value={bill.payment.notes} className="col-span-2" />
-            )}
-          </div>
-        </section>
-      )}
+      {bill.payment && <PaymentInfo payment={bill.payment} currency={bill.currency} />}
 
       {bill.lineItems.length > 0 && (
-        <section className="space-y-2">
-          <h2 className="text-sm font-medium">Line Items</h2>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Description</TableHead>
-                <TableHead>Account Code</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {bill.lineItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.description}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {item.accountCode ?? "—"}
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {formatCurrency(item.amount, bill.currency)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </section>
+        <LineItemsInfo lineItems={bill.lineItems} currency={bill.currency} />
       )}
-    </div>
-  );
-}
-
-interface FieldProps {
-  label: string;
-  value: string;
-  className?: string;
-}
-
-function Field({ label, value, className }: FieldProps) {
-  return (
-    <div className={className}>
-      <p className="text-xs text-muted-foreground uppercase tracking-wide">{label}</p>
-      <p className="text-sm font-medium mt-0.5">{value}</p>
     </div>
   );
 }
