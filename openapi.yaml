@@ -117,6 +117,82 @@ components:
                 type: string
                 example: "6100"
 
+    BillLineItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        billId:
+          type: string
+          format: uuid
+        description:
+          type: string
+        amount:
+          type: string
+          description: Numeric stored as string (numeric 12,2)
+        accountCode:
+          type: string
+          nullable: true
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        billId:
+          type: string
+          format: uuid
+        vendorId:
+          type: string
+          format: uuid
+        amount:
+          type: string
+          description: Numeric stored as string (numeric 12,2)
+        status:
+          type: string
+          enum: [scheduled, initiated, paid, failed]
+        scheduledDate:
+          type: string
+          format: date
+        paymentMethod:
+          type: string
+          enum: [ach, wire, check, card]
+        notes:
+          type: string
+          nullable: true
+        initiatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BillWithRelations:
+      allOf:
+        - $ref: "#/components/schemas/Bill"
+        - type: object
+          properties:
+            vendor:
+              $ref: "#/components/schemas/Vendor"
+              nullable: true
+            lineItems:
+              type: array
+              items:
+                $ref: "#/components/schemas/BillLineItem"
+            payment:
+              $ref: "#/components/schemas/Payment"
+              nullable: true
+
     Vendor:
       type: object
       properties:
@@ -292,6 +368,51 @@ paths:
                         message: Invalid date format (YYYY-MM-DD)
         "500":
           description: Internal server error
+
+  /bills/{id}:
+    get:
+      summary: Get a single bill with vendor, line items, and payment
+      operationId: getBillById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "42a49c88-1a53-41ac-a6b1-69b12f31a53f"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillWithRelations"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Unauthorized
+        "404":
+          description: Bill not found or not owned by the authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Bill not found
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /vendors:
     get:
