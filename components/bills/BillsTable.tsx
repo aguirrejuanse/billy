@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -23,6 +24,7 @@ const COLUMNS = (
     <TableHead className="text-right">Amount</TableHead>
     <TableHead>Status</TableHead>
     <TableHead>Due Date</TableHead>
+    <TableHead />
   </TableRow>
 );
 
@@ -52,6 +54,9 @@ export function BillsTableSkeleton() {
               </TableCell>
               <TableCell>
                 <Skeleton className="h-4 w-24" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-20" />
               </TableCell>
             </TableRow>
           ))}
@@ -84,6 +89,14 @@ export function BillsTable({ bills }: BillsTableProps) {
               <BillStatusBadge status={bill.status} />
             </TableCell>
             <TableCell className="text-sm">{formatDate(bill.dueDate)}</TableCell>
+            <TableCell>
+              <Link
+                href={`/bills/${bill.id}`}
+                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                View Detail
+              </Link>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>

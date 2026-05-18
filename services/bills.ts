@@ -19,3 +19,12 @@ export async function createBillService(input: CreateBillInput): Promise<Bill> {
   const { data } = await api.post<CreateBillResponse>("/bills", input);
   return data.data;
 }
+
+interface GetBillByIdResponse {
+  data: BillWithRelations;
+}
+
+export async function getBillByIdService(id: string): Promise<BillWithRelations> {
+  const { data } = await api.get<GetBillByIdResponse>(`/bills/${id}`);
+  return data.data;
+}

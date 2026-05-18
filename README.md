@@ -59,11 +59,12 @@ pnpm dev       # http://localhost:3000
 
 The full spec is in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.1.0).
 
-| Method | Path           | Description                                  |
-| ------ | -------------- | -------------------------------------------- |
-| GET    | `/api/bills`   | List all bills for the authenticated user    |
-| POST   | `/api/bills`   | Create a new bill (with optional line items) |
-| GET    | `/api/vendors` | List all vendors                             |
+| Method | Path             | Description                                   |
+| ------ | ---------------- | --------------------------------------------- |
+| GET    | `/api/bills`     | List all bills for the authenticated user     |
+| POST   | `/api/bills`     | Create a new bill (with optional line items)  |
+| GET    | `/api/bills/:id` | Get a single bill with payment and line items |
+| GET    | `/api/vendors`   | List all vendors                              |
 
 All endpoints require a valid Clerk session. Responses follow `{ data }` on success and `{ error }` on failure.
 
@@ -171,6 +172,6 @@ Types are inferred directly from the Drizzle schema via `InferSelectModel` — s
 | US-01 | As an AP Manager, I want to see a list of all my bills so I can have an overview of pending payables.      | ✅ Done |
 | US-02 | As an AP Manager, I want to create a new bill with line items so I can register vendor invoices.           | ✅ Done |
 | US-03 | As an AP Manager, I want to filter bills by status and vendor so I can prioritize my work queue.           | 🔲 Todo |
-| US-04 | As an AP Manager, I want to view a bill's full detail including line items and payment info.               | 🔲 Todo |
+| US-04 | As an AP Manager, I want to view a bill's full detail including line items and payment info.               | ✅ Done |
 | US-05 | As an AP Manager, I want to approve or reject a bill so I can control which invoices get paid.             | 🔲 Todo |
 | US-06 | As a Finance Manager, I want an AP Aging Report grouped by overdue buckets so I can manage cash flow risk. | 🔲 Todo |
