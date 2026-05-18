@@ -1,5 +1,4 @@
-"use client";
-
+import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BillStatusBadge } from "./BillStatusBadge";
 import { BillInfo } from "./info/BillInfo";
@@ -9,7 +8,6 @@ import type { BillWithRelations } from "@/types";
 
 interface BillDetailProps {
   bill: BillWithRelations;
-  onBack: () => void;
 }
 
 export function BillDetailSkeleton() {
@@ -32,15 +30,15 @@ export function BillDetailSkeleton() {
   );
 }
 
-export function BillDetail({ bill, onBack }: BillDetailProps) {
+export function BillDetail({ bill }: BillDetailProps) {
   return (
     <div className="space-y-6 max-w-3xl">
-      <button
-        onClick={onBack}
-        className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      <Link
+        href="/bills"
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         ← Back
-      </button>
+      </Link>
 
       <div className="flex items-start justify-between gap-4">
         <div>
