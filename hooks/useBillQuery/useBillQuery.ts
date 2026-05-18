@@ -7,6 +7,6 @@ export function useBillQuery(id: string) {
     queryKey: ["bills", id],
     queryFn: () => getBillByIdService(id),
     staleTime: 30000,
-    retry: false,
+    retry: 1,
   });
 }
