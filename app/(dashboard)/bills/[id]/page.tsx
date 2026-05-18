@@ -12,11 +12,11 @@ interface BillDetailPageProps {
 
 export default function BillDetailPage({ params }: BillDetailPageProps) {
   const { id } = use(params);
-  const { data: bill, isLoading, error } = useBillQuery(id);
+  const { data: bill, isLoading, isFetching, error } = useBillQuery(id);
 
   if (isLoading) return <BillDetailSkeleton />;
 
   if (error || !bill) return <BillError />;
 
-  return <BillDetail bill={bill} />;
+  return <BillDetail bill={bill} isFetching={isFetching} />;
 }
