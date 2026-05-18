@@ -57,3 +57,4 @@ export type CreateBillInput = z.infer<typeof createBillSchema>;
 export type CreateBillFormInput = z.input<typeof createBillSchema>;
 export type UpdatePaymentStatusInput = z.infer<typeof updatePaymentStatusSchema>;
 export type BillActionInput = z.infer<typeof billActionSchema>;
+export type BillAction = "approve" | "reject";

@@ -3,14 +3,14 @@ import { eq, and, SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { bills as billsTable, payments as paymentsTable } from "@/db/schema";
 import { getAuthenticatedUser } from "@/lib/auth";
-import { billActionSchema } from "@/lib/validators";
+import { billActionSchema, BillAction } from "@/lib/validators";
 import { isValidUuid } from "@/lib/utils";
 import { Bill, BillDetailParams } from "@/types";
 
 type RouteParams = { params: Promise<BillDetailParams> };
 
 interface HandleBillActionParams {
-  action: "approve" | "reject";
+  action: BillAction;
   bill: Bill;
 }
 

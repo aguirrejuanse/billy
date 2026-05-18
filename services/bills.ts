@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import type { Bill, BillWithRelations } from "@/types";
-import type { CreateBillInput } from "@/lib/validators";
+import type { CreateBillInput, BillAction } from "@/lib/validators";
 
 interface GetBillsResponse {
   data: BillWithRelations[];
@@ -10,8 +10,13 @@ interface CreateBillResponse {
   data: Bill;
 }
 
-export async function getBillsService(): Promise<BillWithRelations[]> {
-  const { data } = await api.get<GetBillsResponse>("/bills");
+export interface BillFilters {
+  status?: string;
+  vendorId?: string;
+}
+
+export async function getBillsService(filters?: BillFilters): Promise<BillWithRelations[]> {
+  const { data } = await api.get<GetBillsResponse>("/bills", { params: filters });
   return data.data;
 }
 
@@ -26,5 +31,13 @@ interface GetBillByIdResponse {
 
 export async function getBillByIdService(id: string): Promise<BillWithRelations> {
   const { data } = await api.get<GetBillByIdResponse>(`/bills/${id}`);
+  return data.data;
+}
+
+export async function billActionService(
+  id: string,
+  action: BillAction
+): Promise<BillWithRelations> {
+  const { data } = await api.patch<GetBillByIdResponse>(`/bills/${id}`, { action });
   return data.data;
 }
