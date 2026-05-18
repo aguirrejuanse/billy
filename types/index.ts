@@ -13,3 +13,7 @@ export type PaymentWithRelations = Payment & {
   bill: Bill;
   vendor: Vendor;
 };
+
+export interface BillDetailParams {
+  id: string;
+}
