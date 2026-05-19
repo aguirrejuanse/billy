@@ -555,3 +555,82 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Internal server error
+
+  /payments:
+    get:
+      summary: List payments for the authenticated user
+      operationId: getPayments
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [scheduled, initiated, paid, failed]
+          description: Filter by payment status
+        - name: paymentMethod
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ach, wire, check, card]
+          description: Filter by payment method
+        - name: vendorId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by vendor ID
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: "#/components/schemas/Payment"
+                        - type: object
+                          properties:
+                            bill:
+                              $ref: "#/components/schemas/Bill"
+                            vendor:
+                              $ref: "#/components/schemas/Vendor"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Unauthorized
+        "422":
+          description: Invalid filter value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_status:
+                  summary: Invalid status value
+                  value:
+                    error: Invalid status value
+                invalid_method:
+                  summary: Invalid paymentMethod value
+                  value:
+                    error: Invalid paymentMethod value
+                invalid_vendor_id:
+                  summary: Non-UUID vendorId
+                  value:
+                    error: Invalid vendorId
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
