@@ -34,6 +34,7 @@ const mockVendor = {
   name: "Acme Corp",
   email: null,
   paymentMethod: paymentMethodEnum.enumValues[0],
+  ownerId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
