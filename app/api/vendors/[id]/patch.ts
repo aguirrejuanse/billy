@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { vendors as vendorsTable } from "@/db/schema";
 import { getAuthenticatedUser } from "@/lib/auth";
@@ -33,7 +33,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
     }
 
-    if (isNull(vendorsTable.ownerId) || vendor.ownerId === null) {
+    if (vendor.ownerId === null) {
       return NextResponse.json({ error: "Cannot edit a global vendor" }, { status: 403 });
     }
 
