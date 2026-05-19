@@ -1,21 +1,16 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useVendorsQuery } from "@/hooks/useVendorsQuery";
 import { billStatusLabels } from "@/lib/formatters";
 import { billStatusEnum } from "@/db/schema";
+import { FilterSelect } from "./filters/FilterSelect";
 
 export function BillsFilters() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data: vendors } = useVendorsQuery();
+  const { data: vendors, isPending } = useVendorsQuery();
 
   const currentStatus = searchParams.get("status");
   const currentVendorId = searchParams.get("vendorId");
@@ -31,40 +26,31 @@ export function BillsFilters() {
   }
 
   function clearFilters() {
-    router.replace("?");
+    router.replace(pathname);
   }
+
+  const statusOptions = billStatusEnum.enumValues.map((s) => ({
+    value: s,
+    label: billStatusLabels[s],
+  }));
+
+  const vendorOptions = (vendors ?? []).map((v) => ({ value: v.id, label: v.name }));
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <Select value={currentStatus ?? undefined} onValueChange={(v) => updateParam("status", v)}>
-        <SelectTrigger className="w-44 h-8 text-sm">
-          <SelectValue placeholder="All statuses" />
-        </SelectTrigger>
-        <SelectContent>
-          {billStatusEnum.enumValues.map((s) => (
-            <SelectItem key={s} value={s}>
-              {billStatusLabels[s]}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <Select
-        value={currentVendorId ?? undefined}
-        onValueChange={(v) => updateParam("vendorId", v)}
-      >
-        <SelectTrigger className="w-44 h-8 text-sm">
-          <SelectValue placeholder="All vendors" />
-        </SelectTrigger>
-        <SelectContent>
-          {vendors?.map((v) => (
-            <SelectItem key={v.id} value={v.id}>
-              {v.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
+      <FilterSelect
+        value={currentStatus}
+        placeholder="All statuses"
+        options={statusOptions}
+        onChange={(v) => updateParam("status", v)}
+      />
+      <FilterSelect
+        value={currentVendorId}
+        placeholder="All vendors"
+        options={vendorOptions}
+        onChange={(v) => updateParam("vendorId", v)}
+        disabled={isPending}
+      />
       {hasFilters && (
         <button
           onClick={clearFilters}
