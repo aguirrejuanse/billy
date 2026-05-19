@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useBillsQuery } from "@/hooks/useBillsQuery";
-import { BillsTable, BillsTableSkeleton } from "@/components/bills/BillsTable";
+import { BillsTable } from "@/components/bills/BillsTable";
 import { BillsFilters } from "@/components/bills/BillsFilters";
 import { CreateBillSheet } from "@/components/bills/CreateBillSheet";
 
@@ -23,38 +23,20 @@ export default function BillsPage() {
 
   const toggleCreateBill = () => setOpenCreateBill((prev) => !prev);
 
-  if (isPlaceholderData) {
-    return <BillsTableSkeleton />;
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-start gap-2">
-        <p className="text-sm text-destructive">Failed to load bills.</p>
-        <button
-          onClick={() => refetch()}
-          className="text-sm font-medium underline underline-offset-4 cursor-pointer"
-        >
-          Try again
-        </button>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">{bills.length} bills</p>
+          <BillsFilters />
           <button
             onClick={toggleCreateBill}
-            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer"
+            disabled={isPlaceholderData}
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             New Bill
           </button>
         </div>
-        <BillsFilters />
-        <BillsTable bills={bills} />
+        <BillsTable bills={bills} isLoading={isPlaceholderData} error={error} onRetry={refetch} />
       </div>
       <CreateBillSheet open={openCreateBill} onOpenChange={toggleCreateBill} />
     </>
