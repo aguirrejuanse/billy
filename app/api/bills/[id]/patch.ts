@@ -18,16 +18,27 @@ async function handleBillAction({
   action,
   bill,
 }: HandleBillActionParams): Promise<NextResponse | undefined> {
-  if (bill.status !== "awaiting_approval") {
-    return NextResponse.json(
-      {
-        error: `Bill cannot be ${action === "approve" ? "approved" : "rejected"} in current status`,
-      },
-      { status: 400 }
-    );
+  if (action === "submit") {
+    if (bill.status !== "draft")
+      return NextResponse.json({ error: "Only draft bills can be submitted" }, { status: 400 });
+
+    const [updated] = await db
+      .update(billsTable)
+      .set({ status: "awaiting_approval", updatedAt: new Date() })
+      .where(and(eq(billsTable.id, bill.id), eq(billsTable.status, "draft")))
+      .returning({ id: billsTable.id });
+
+    if (!updated) throw new Error("RACE_LOST");
+    return;
   }
 
   if (action === "approve") {
+    if (bill.status !== "awaiting_approval")
+      return NextResponse.json(
+        { error: "Bill cannot be approved in current status" },
+        { status: 400 }
+      );
+
     await db.transaction(async (tx) => {
       const [updated] = await tx
         .update(billsTable)
@@ -46,7 +57,16 @@ async function handleBillAction({
         paymentMethod: bill.paymentType,
       });
     });
-  } else {
+    return;
+  }
+
+  if (action === "reject") {
+    if (bill.status !== "awaiting_approval")
+      return NextResponse.json(
+        { error: "Bill cannot be rejected in current status" },
+        { status: 400 }
+      );
+
     const [updated] = await db
       .update(billsTable)
       .set({ status: "rejected", updatedAt: new Date() })
@@ -54,7 +74,10 @@ async function handleBillAction({
       .returning({ id: billsTable.id });
 
     if (!updated) throw new Error("RACE_LOST");
+    return;
   }
+
+  action satisfies never;
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {

@@ -13,7 +13,6 @@ export function useBillActionMutation(billId: string) {
     mutationFn: (action) => billActionService(billId, action),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bills"] });
-      queryClient.invalidateQueries({ queryKey: ["bills", billId] });
     },
   });
 }
