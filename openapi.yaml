@@ -431,7 +431,7 @@ paths:
 
   /bills/{id}/patch:
     patch:
-      summary: Approve or reject a bill
+      summary: Submit, approve, or reject a bill
       operationId: patchBill
       parameters:
         - name: id
@@ -451,8 +451,16 @@ paths:
               properties:
                 action:
                   type: string
-                  enum: [approve, reject]
+                  enum: [submit, approve, reject]
+                  description: >
+                    `submit` — transitions a draft bill to awaiting_approval.
+                    `approve` — transitions an awaiting_approval bill to approved (atomically creates a scheduled payment).
+                    `reject` — transitions an awaiting_approval bill to rejected.
             examples:
+              submit:
+                summary: Submit a draft bill for approval
+                value:
+                  action: submit
               approve:
                 summary: Approve a bill
                 value:
@@ -472,13 +480,24 @@ paths:
                   data:
                     $ref: "#/components/schemas/BillWithRelations"
         "400":
-          description: Malformed JSON body
+          description: Bill is not in the required status for this action
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error: Invalid JSON body
+              examples:
+                not_draft:
+                  summary: Submit on non-draft bill
+                  value:
+                    error: Only draft bills can be submitted
+                wrong_status:
+                  summary: Approve/reject on non-awaiting_approval bill
+                  value:
+                    error: Bill cannot be approved in current status
+                malformed_json:
+                  summary: Malformed JSON body
+                  value:
+                    error: Invalid request body
         "401":
           description: Unauthorized
           content:
@@ -494,28 +513,21 @@ paths:
               example:
                 error: Bill not found
         "409":
-          description: Concurrent update conflict (bill status changed)
+          description: Concurrent update conflict (bill status changed between check and update)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                error: Bill was already actioned by another request
+                error: Bill status changed concurrently
         "422":
-          description: Invalid action or bill not in awaiting_approval status
+          description: Invalid action value (Zod validation failed)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                invalid_action:
-                  summary: Unknown action
-                  value:
-                    error: Invalid action
-                wrong_status:
-                  summary: Bill not awaiting approval
-                  value:
-                    error: Bill is not awaiting approval
+              example:
+                error: Invalid enum value
         "500":
           description: Internal server error
 
