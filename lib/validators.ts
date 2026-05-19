@@ -3,17 +3,19 @@ import { currencyEnum, paymentMethodEnum, paymentStatusEnum } from "@/db/schema"
 
 const nonEmptyString = z.string().min(1);
 
+const paymentMethodsArray = z.array(z.enum(paymentMethodEnum.enumValues)).min(1);
+
 export const createVendorSchema = z.object({
   name: nonEmptyString,
   email: z.email().optional(),
-  paymentMethod: z.enum(paymentMethodEnum.enumValues),
+  paymentMethods: paymentMethodsArray,
 });
 
 export const updateVendorSchema = z
   .object({
     name: nonEmptyString.optional(),
     email: z.email().optional(),
-    paymentMethod: z.enum(paymentMethodEnum.enumValues).optional(),
+    paymentMethods: paymentMethodsArray.optional(),
   })
   .refine((data) => Object.keys(data).length > 0, { message: "At least one field required" });
 
