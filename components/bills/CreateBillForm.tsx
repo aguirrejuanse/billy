@@ -9,6 +9,7 @@ import { useVendorsQuery } from "@/hooks/useVendorsQuery";
 import { useCreateBillMutation } from "@/hooks/useCreateBillMutation";
 import { FormInput, FormTextarea, FormSelect, FormDateInput } from "@/components/ui/form-fields";
 import { LineItemsField } from "./LineItemsField";
+import { paymentMethodLabels } from "@/lib/formatters";
 import Link from "next/link";
 
 interface CreateBillFormProps {
@@ -17,7 +18,7 @@ interface CreateBillFormProps {
 
 const PAYMENT_METHOD_OPTIONS = paymentMethodEnum.enumValues.map((v) => ({
   value: v,
-  label: { ach: "ACH", wire: "Wire", check: "Check", card: "Card" }[v] ?? v,
+  label: paymentMethodLabels[v],
 }));
 
 const CURRENCY_OPTIONS = currencyEnum.enumValues.map((v) => ({ value: v, label: v }));
@@ -36,34 +37,28 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
   const invoiceDate = useWatch({ control: methods.control, name: "invoiceDate" });
   const selectedVendorId = useWatch({ control: methods.control, name: "vendorId" });
 
-  const selectedVendor = vendors.find((v) => v.id === selectedVendorId);
+  const selectedVendor = vendors.find((v) => v.id === selectedVendorId) ?? vendors[0];
   const availablePaymentOptions = selectedVendor
     ? PAYMENT_METHOD_OPTIONS.filter((opt) => selectedVendor.paymentMethods.includes(opt.value))
     : PAYMENT_METHOD_OPTIONS;
 
   useEffect(() => {
-    if (vendors.length > 0 && !methods.getValues("vendorId")) {
-      methods.setValue("vendorId", vendors[0].id);
-    }
-  }, [vendors]);
+    if (vendors.length === 0) return;
 
-  useEffect(() => {
-    if (!selectedVendor) return;
-    if (selectedVendor.paymentMethods.length === 1) {
-      methods.setValue(
-        "paymentType",
-        selectedVendor.paymentMethods[0] as CreateBillInput["paymentType"]
-      );
-    } else {
-      const current = methods.getValues("paymentType");
-      if (current && !selectedVendor.paymentMethods.includes(current)) {
-        methods.setValue(
-          "paymentType",
-          selectedVendor.paymentMethods[0] as CreateBillInput["paymentType"]
-        );
-      }
+    const currentVendorId = methods.getValues("vendorId");
+    const effectiveVendorId = currentVendorId || vendors[0].id;
+    if (!currentVendorId) {
+      methods.setValue("vendorId", effectiveVendorId);
     }
-  }, [selectedVendorId, vendors]);
+
+    const vendor = vendors.find((v) => v.id === effectiveVendorId);
+    if (!vendor || vendor.paymentMethods.length === 0) return;
+
+    const firstMethod = vendor.paymentMethods[0] as CreateBillInput["paymentType"];
+    if (methods.getValues("paymentType") !== firstMethod) {
+      methods.setValue("paymentType", firstMethod);
+    }
+  }, [vendors, selectedVendorId]);
 
   const errorMessage = mutationError
     ? (mutationError.response?.data?.error ?? "Failed to create bill. Please try again.")
