@@ -5,11 +5,11 @@ import { useVendorsQuery } from "@/hooks/useVendorsQuery";
 import { VendorsTable } from "@/components/vendors/VendorsTable";
 import { CreateVendorSheet } from "@/components/vendors/CreateVendorSheet";
 import { EditVendorSheet } from "@/components/vendors/EditVendorSheet";
-import type { Vendor } from "@/types";
+import type { VendorWithMethods } from "@/types";
 
 export default function VendorsPage() {
   const [openCreateVendor, setOpenCreateVendor] = useState(false);
-  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
+  const [editingVendor, setEditingVendor] = useState<VendorWithMethods | null>(null);
 
   const { data: vendors = [], isLoading, error, refetch } = useVendorsQuery();
 

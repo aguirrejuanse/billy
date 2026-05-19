@@ -3,7 +3,7 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { FormInput, FormSelect } from "@/components/ui/form-fields";
+import { FormInput, FormCheckboxGroup } from "@/components/ui/form-fields";
 import { createVendorSchema, type CreateVendorInput } from "@/lib/validators";
 import { paymentMethodEnum } from "@/db/schema";
 import { paymentMethodLabels } from "@/lib/formatters";
@@ -22,7 +22,7 @@ interface CreateVendorSheetProps {
 export function CreateVendorSheet({ open, onOpenChange }: CreateVendorSheetProps) {
   const methods = useForm<CreateVendorInput>({
     resolver: zodResolver(createVendorSchema),
-    defaultValues: { paymentMethod: "ach" },
+    defaultValues: { paymentMethods: ["ach"] },
   });
 
   const { mutate: createVendor, isPending, error: mutationError } = useCreateVendorMutation();
@@ -57,9 +57,9 @@ export function CreateVendorSheet({ open, onOpenChange }: CreateVendorSheetProps
               placeholder="billing@acme.com"
               optional
             />
-            <FormSelect
-              name="paymentMethod"
-              label="Payment Method"
+            <FormCheckboxGroup
+              name="paymentMethods"
+              label="Payment Methods"
               options={PAYMENT_METHOD_OPTIONS}
             />
 

@@ -8,14 +8,14 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { paymentMethodLabels } from "@/lib/formatters";
-import type { Vendor } from "@/types";
+import type { VendorWithMethods } from "@/types";
 
 interface VendorsTableProps {
-  vendors: Vendor[];
+  vendors: VendorWithMethods[];
   isLoading?: boolean;
   error?: Error | null;
   onRetry?: () => void;
-  onEdit?: (vendor: Vendor) => void;
+  onEdit?: (vendor: VendorWithMethods) => void;
 }
 
 const COLUMNS = (
@@ -95,7 +95,9 @@ export function VendorsTable({ vendors, isLoading, error, onRetry, onEdit }: Ven
                   {vendor.email ?? "—"}
                 </TableCell>
                 <TableCell className="text-sm">
-                  {paymentMethodLabels[vendor.paymentMethod]}
+                  {vendor.paymentMethods
+                    .map((m) => paymentMethodLabels[m as keyof typeof paymentMethodLabels])
+                    .join(", ")}
                 </TableCell>
                 <TableCell>
                   {vendor.ownerId === null ? (

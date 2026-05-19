@@ -4,12 +4,12 @@ import { useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { FormInput, FormSelect } from "@/components/ui/form-fields";
+import { FormInput, FormCheckboxGroup } from "@/components/ui/form-fields";
 import { updateVendorSchema, type UpdateVendorInput } from "@/lib/validators";
 import { paymentMethodEnum } from "@/db/schema";
 import { paymentMethodLabels } from "@/lib/formatters";
 import { useUpdateVendorMutation } from "@/hooks/useUpdateVendorMutation";
-import type { Vendor } from "@/types";
+import type { VendorWithMethods } from "@/types";
 
 const PAYMENT_METHOD_OPTIONS = paymentMethodEnum.enumValues.map((v) => ({
   value: v,
@@ -17,7 +17,7 @@ const PAYMENT_METHOD_OPTIONS = paymentMethodEnum.enumValues.map((v) => ({
 }));
 
 interface EditVendorSheetProps {
-  vendor: Vendor | null;
+  vendor: VendorWithMethods | null;
   onOpenChange: () => void;
 }
 
@@ -33,7 +33,7 @@ export function EditVendorSheet({ vendor, onOpenChange }: EditVendorSheetProps) 
       methods.reset({
         name: vendor.name,
         email: vendor.email ?? undefined,
-        paymentMethod: vendor.paymentMethod,
+        paymentMethods: vendor.paymentMethods as UpdateVendorInput["paymentMethods"],
       });
     }
   }, [vendor, methods]);
@@ -70,9 +70,9 @@ export function EditVendorSheet({ vendor, onOpenChange }: EditVendorSheetProps) 
               placeholder="billing@acme.com"
               optional
             />
-            <FormSelect
-              name="paymentMethod"
-              label="Payment Method"
+            <FormCheckboxGroup
+              name="paymentMethods"
+              label="Payment Methods"
               options={PAYMENT_METHOD_OPTIONS}
             />
 
