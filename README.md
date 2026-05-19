@@ -167,12 +167,16 @@ Types are inferred directly from the Drizzle schema via `InferSelectModel` — s
 
 ## User Stories
 
-| ID    | Story                                                                                                      | Status  |
-| ----- | ---------------------------------------------------------------------------------------------------------- | ------- |
-| US-00 | As a developer, I want realistic seed data so I can develop and demo the system without manual data entry. | ✅ Done |
-| US-01 | As an AP Manager, I want to see a list of all my bills so I can have an overview of pending payables.      | ✅ Done |
-| US-02 | As an AP Manager, I want to create a new bill with line items so I can register vendor invoices.           | ✅ Done |
-| US-03 | As an AP Manager, I want to filter bills by status and vendor so I can prioritize my work queue.           | ✅ Done |
-| US-04 | As an AP Manager, I want to view a bill's full detail including line items and payment info.               | ✅ Done |
-| US-05 | As an AP Manager, I want to approve or reject a bill so I can control which invoices get paid.             | ✅ Done |
-| US-06 | As a Finance Manager, I want an AP Aging Report grouped by overdue buckets so I can manage cash flow risk. | 🔲 Todo |
+| ID    | Story                                                                                                          | Status  |
+| ----- | -------------------------------------------------------------------------------------------------------------- | ------- |
+| US-00 | As a developer, I want realistic seed data so I can develop and demo the system without manual data entry.     | ✅ Done |
+| US-01 | As an AP Manager, I want to see a list of all my bills so I can have an overview of pending payables.          | ✅ Done |
+| US-02 | As an AP Manager, I want to create a new bill with line items so I can register vendor invoices.               | ✅ Done |
+| US-03 | As an AP Manager, I want to filter bills by status and vendor so I can prioritize my work queue.               | ✅ Done |
+| US-04 | As an AP Manager, I want to view a bill's full detail including line items and payment info.                   | ✅ Done |
+| US-05 | As an AP Manager, I want to approve or reject a bill so I can control which invoices get paid.                 | ✅ Done |
+| US-06 | As a Finance Manager, I want an AP Aging Report grouped by overdue buckets so I can manage cash flow risk.     | 🔲 Todo |
+| US-07 | As an AP Manager, I want to submit a draft bill for approval so it enters the approval queue.                  | 🔲 Todo |
+| US-08 | As a Finance Manager, I want to see a list of all payments so I can track fund transfers and their status.     | 🔲 Todo |
+| US-09 | As an AP Manager, I want to manage vendors so I can register and update the companies I pay.                   | 🔲 Todo |
+| US-10 | As a user, I want a polished UI with consistent colors and visual hierarchy so the app feels production-ready. | 🔲 Todo |
