@@ -8,9 +8,6 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Payments</h1>
-      </div>
       <PaymentsTable
         payments={payments}
         isLoading={isPlaceholderData}
