@@ -18,10 +18,12 @@ export function BillsFilters() {
   const hasFilters = currentStatus !== null || currentVendorId !== null;
 
   function updateParam(key: string, value: string | null) {
-    if (value === null) return;
     const params = new URLSearchParams(searchParams.toString());
-    params.delete(key);
-    if (value) params.set(key, value);
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
     router.replace(`?${params.toString()}`);
   }
 

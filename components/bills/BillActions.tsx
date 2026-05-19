@@ -3,7 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBillActionMutation } from "@/hooks/useBillActionMutation";
-import type { Bill, BillWithRelations } from "@/types";
+import type { BillWithRelations } from "@/types";
 
 interface BillActionsProps {
   bill: BillWithRelations;
@@ -13,7 +13,7 @@ interface BillActionsProps {
 export function BillActions({ bill, isFetching }: BillActionsProps) {
   const { mutate, isPending } = useBillActionMutation(bill.id);
 
-  const statusMessages: Record<Bill["status"], string> = {
+  const statusMessages: Record<BillWithRelations["status"], string> = {
     draft: "Submit to enable approval",
     approved: "This bill has been approved",
     rejected: "This bill has been rejected",
@@ -31,10 +31,8 @@ export function BillActions({ bill, isFetching }: BillActionsProps) {
 
   return (
     <div className="flex gap-2">
-      <Button onClick={() => mutate("approve")} disabled={isPending}>
-        Approve
-      </Button>
-      <Button variant="destructive" onClick={() => mutate("reject")} disabled={isPending}>
+      <Button onClick={() => mutate("approve")}>Approve</Button>
+      <Button variant="destructive" onClick={() => mutate("reject")}>
         Reject
       </Button>
     </div>

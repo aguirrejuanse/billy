@@ -4,7 +4,7 @@ import type { BillWithRelations } from "@/types";
 
 export function useBillsQuery(filters?: BillFilters) {
   return useQuery<BillWithRelations[]>({
-    queryKey: ["bills", filters],
+    queryKey: ["bills", filters?.status, filters?.vendorId],
     queryFn: () => getBillsService(filters),
     placeholderData: [],
     staleTime: 30000,

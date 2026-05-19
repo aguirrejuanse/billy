@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq, and, SQL } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { bills as billsTable, payments as paymentsTable } from "@/db/schema";
 import { getAuthenticatedUser } from "@/lib/auth";
@@ -83,11 +83,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
     const { action } = parsed.data;
 
-    if (action !== "approve" && action !== "reject") {
-      return NextResponse.json({ error: "Action not supported" }, { status: 422 });
-    }
-
-    const ownedBill: SQL = and(eq(billsTable.id, id), eq(billsTable.ownerId, user.id)) as SQL;
+    const ownedBill = and(eq(billsTable.id, id), eq(billsTable.ownerId, user.id));
     const bill = await db.query.bills.findFirst({ where: ownedBill });
 
     if (!bill) {
