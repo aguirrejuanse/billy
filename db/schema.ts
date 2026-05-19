@@ -33,7 +33,6 @@ export const vendors = pgTable("vendors", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   email: text("email"),
-  paymentMethod: paymentMethodEnum("payment_method").notNull().default("ach"),
   ownerId: uuid("owner_id").references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -69,6 +68,14 @@ export const billLineItems = pgTable("bill_line_items", {
   accountCode: text("account_code"),
 });
 
+export const vendorPaymentMethods = pgTable("vendor_payment_methods", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  vendorId: uuid("vendor_id")
+    .notNull()
+    .references(() => vendors.id, { onDelete: "cascade" }),
+  method: paymentMethodEnum("method").notNull(),
+});
+
 export const payments = pgTable("payments", {
   id: uuid("id").primaryKey().defaultRandom(),
   billId: uuid("bill_id")
@@ -95,8 +102,13 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   owner: one(users, { fields: [vendors.ownerId], references: [users.id] }),
+  paymentMethods: many(vendorPaymentMethods),
   bills: many(bills),
   payments: many(payments),
+}));
+
+export const vendorPaymentMethodsRelations = relations(vendorPaymentMethods, ({ one }) => ({
+  vendor: one(vendors, { fields: [vendorPaymentMethods.vendorId], references: [vendors.id] }),
 }));
 
 export const billsRelations = relations(bills, ({ one, many }) => ({
@@ -121,6 +133,8 @@ export type NewUser = InferInsertModel<typeof users>;
 
 export type Vendor = InferSelectModel<typeof vendors>;
 export type NewVendor = InferInsertModel<typeof vendors>;
+
+export type VendorPaymentMethod = InferSelectModel<typeof vendorPaymentMethods>;
 
 export type Bill = InferSelectModel<typeof bills>;
 export type NewBill = InferInsertModel<typeof bills>;
