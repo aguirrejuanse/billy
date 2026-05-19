@@ -228,6 +228,21 @@ paths:
     get:
       summary: List bills for the authenticated user
       operationId: getBills
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [draft, awaiting_approval, approved, rejected, archived]
+          description: Filter by bill status
+        - name: vendorId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by vendor ID
       responses:
         "200":
           description: OK
@@ -413,6 +428,96 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /bills/{id}/patch:
+    patch:
+      summary: Approve or reject a bill
+      operationId: patchBill
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "42a49c88-1a53-41ac-a6b1-69b12f31a53f"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [approve, reject]
+            examples:
+              approve:
+                summary: Approve a bill
+                value:
+                  action: approve
+              reject:
+                summary: Reject a bill
+                value:
+                  action: reject
+      responses:
+        "200":
+          description: Bill updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillWithRelations"
+        "400":
+          description: Malformed JSON body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Invalid JSON body
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Bill not found or not owned by the authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Bill not found
+        "409":
+          description: Concurrent update conflict (bill status changed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Bill was already actioned by another request
+        "422":
+          description: Invalid action or bill not in awaiting_approval status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_action:
+                  summary: Unknown action
+                  value:
+                    error: Invalid action
+                wrong_status:
+                  summary: Bill not awaiting approval
+                  value:
+                    error: Bill is not awaiting approval
+        "500":
+          description: Internal server error
 
   /vendors:
     get:

@@ -2,12 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 import { POST } from "./route";
 import { paymentMethodEnum, currencyEnum, billStatusEnum } from "@/db/schema";
+import type { Bill } from "@/types";
 
 vi.mock("@/lib/auth");
 vi.mock("@/db");
+vi.mock("@/lib/bill-queries");
 
 import { getAuthenticatedUser } from "@/lib/auth";
 import { db } from "@/db";
+import { createBillWithLineItems } from "@/lib/bill-queries";
 
 type FindFirstFn = ReturnType<typeof vi.fn>;
 
@@ -16,7 +19,6 @@ type MockDb = {
     vendors: { findFirst: FindFirstFn };
     bills: { findFirst: FindFirstFn };
   };
-  transaction: ReturnType<typeof vi.fn>;
 };
 
 const mockUser = {
@@ -47,10 +49,15 @@ const validBody = {
   paymentType: paymentMethodEnum.enumValues[0],
 };
 
-const mockBill = {
+const mockBill: Bill = {
   id: "c3d4e5f6-a7b8-4901-cd34-ef5678901234",
-  ...validBody,
+  vendorId: mockVendor.id,
+  number: "INV-001",
   amount: "100.00",
+  currency: currencyEnum.enumValues[0],
+  invoiceDate: "2024-01-15",
+  dueDate: "2024-02-15",
+  paymentType: paymentMethodEnum.enumValues[0],
   ownerId: mockUser.id,
   status: billStatusEnum.enumValues[0],
   description: null,
@@ -66,6 +73,14 @@ function makeRequest(body: unknown) {
   });
 }
 
+function makeRawRequest(rawBody: string) {
+  return new NextRequest("http://localhost/api/bills", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: rawBody,
+  });
+}
+
 function mockAuth(authenticated = true) {
   if (authenticated) {
     vi.mocked(getAuthenticatedUser).mockResolvedValue({ user: mockUser, error: null });
@@ -77,44 +92,23 @@ function mockAuth(authenticated = true) {
   }
 }
 
-function buildTransactionMock(billResult = mockBill) {
-  const insertMock = vi.fn().mockReturnValue({
-    values: vi.fn().mockReturnValue({
-      returning: vi.fn().mockResolvedValue([billResult]),
-    }),
-  });
-  const transactionMock = vi
-    .fn()
-    .mockImplementation(
-      async (cb: (tx: { insert: typeof insertMock }) => Promise<typeof billResult>) =>
-        cb({ insert: insertMock })
-    );
-  return { insertMock, transactionMock };
-}
-
-function mockDb({
+function mockDbQueries({
   vendor = mockVendor,
   existingBill = null,
-  billResult = mockBill,
 }: {
   vendor?: typeof mockVendor | null;
-  existingBill?: typeof mockBill | null;
-  billResult?: typeof mockBill;
+  existingBill?: Bill | null;
 } = {}) {
-  const { insertMock, transactionMock } = buildTransactionMock(billResult);
-
   const mocked = db as unknown as MockDb;
   mocked.query = {
     vendors: { findFirst: vi.fn().mockResolvedValue(vendor) },
     bills: { findFirst: vi.fn().mockResolvedValue(existingBill) },
   };
-  mocked.transaction = transactionMock;
-
-  return { insertMock, transactionMock };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(createBillWithLineItems).mockResolvedValue(mockBill);
 });
 
 describe("POST /api/bills", () => {
@@ -134,34 +128,40 @@ describe("POST /api/bills", () => {
     it("returns 400 for invalid JSON body", async () => {
       mockAuth();
 
-      const req = new NextRequest("http://localhost/api/bills", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: "not-json{{{",
-      });
-
-      const res = await POST(req);
+      const res = await POST(makeRawRequest("not-json{{{"));
       expect(res.status).toBe(400);
 
       const body = await res.json();
       expect(body.error).toBe("Invalid JSON body");
     });
 
-    it("returns 422 for invalid schema (missing required fields)", async () => {
+    it("returns 422 for missing required fields", async () => {
       mockAuth();
 
       const res = await POST(makeRequest({ vendorId: mockVendor.id }));
       expect(res.status).toBe(422);
 
       const body = await res.json();
-      expect(Array.isArray(body.error)).toBe(true);
+      expect(typeof body.error).toBe("string");
+    });
+
+    it("returns 422 when dueDate is before invoiceDate", async () => {
+      mockAuth();
+
+      const res = await POST(
+        makeRequest({ ...validBody, invoiceDate: "2024-02-15", dueDate: "2024-01-15" })
+      );
+      expect(res.status).toBe(422);
+
+      const body = await res.json();
+      expect(body.error).toBe("Due date must be on or after invoice date");
     });
   });
 
   describe("business logic", () => {
     it("returns 422 when vendor does not exist", async () => {
       mockAuth();
-      mockDb({ vendor: null });
+      mockDbQueries({ vendor: null });
 
       const res = await POST(makeRequest(validBody));
       expect(res.status).toBe(422);
@@ -172,7 +172,7 @@ describe("POST /api/bills", () => {
 
     it("returns 409 when bill number already exists for this user", async () => {
       mockAuth();
-      mockDb({ existingBill: mockBill });
+      mockDbQueries({ existingBill: mockBill });
 
       const res = await POST(makeRequest(validBody));
       expect(res.status).toBe(409);
@@ -181,9 +181,20 @@ describe("POST /api/bills", () => {
       expect(body.error).toBe("Bill number already exists");
     });
 
-    it("returns 201 with created bill on happy path (no lineItems)", async () => {
+    it("vendor-not-found takes precedence over duplicate-bill when both conditions are true", async () => {
       mockAuth();
-      mockDb();
+      mockDbQueries({ vendor: null, existingBill: mockBill });
+
+      const res = await POST(makeRequest(validBody));
+      expect(res.status).toBe(422);
+
+      const body = await res.json();
+      expect(body.error).toBe("Vendor not found");
+    });
+
+    it("returns 201 with created bill on happy path", async () => {
+      mockAuth();
+      mockDbQueries();
 
       const res = await POST(makeRequest(validBody));
       expect(res.status).toBe(201);
@@ -197,18 +208,41 @@ describe("POST /api/bills", () => {
       });
     });
 
-    it("returns 201 and inserts bill + lineItems in transaction", async () => {
+    it("calls createBillWithLineItems with correct params", async () => {
       mockAuth();
-      const { insertMock } = mockDb();
+      mockDbQueries();
 
-      const bodyWithLineItems = {
-        ...validBody,
-        lineItems: [{ description: "Service fee", amount: 50 }],
-      };
+      await POST(makeRequest(validBody));
 
-      const res = await POST(makeRequest(bodyWithLineItems));
+      expect(createBillWithLineItems).toHaveBeenCalledWith({
+        data: expect.objectContaining({ number: "INV-001", amount: 100 }),
+        ownerId: mockUser.id,
+      });
+    });
+
+    it("returns 201 when line items are provided", async () => {
+      mockAuth();
+      mockDbQueries();
+
+      const res = await POST(
+        makeRequest({
+          ...validBody,
+          lineItems: [{ description: "Service fee", amount: 50 }],
+        })
+      );
       expect(res.status).toBe(201);
-      expect(insertMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("returns 500 when createBillWithLineItems throws", async () => {
+      mockAuth();
+      mockDbQueries();
+      vi.mocked(createBillWithLineItems).mockRejectedValue(new Error("DB failure"));
+
+      const res = await POST(makeRequest(validBody));
+      expect(res.status).toBe(500);
+
+      const body = await res.json();
+      expect(body.error).toBe("Internal server error");
     });
   });
 });

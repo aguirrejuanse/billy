@@ -49,11 +49,11 @@ export const updatePaymentStatusSchema = z.object({
 });
 
 export const billActionSchema = z.object({
-  action: z.enum(["submit", "approve", "reject", "archive"]),
+  action: z.enum(["approve", "reject"]),
 });
 
 export type CreateVendorInput = z.infer<typeof createVendorSchema>;
 export type CreateBillInput = z.infer<typeof createBillSchema>;
 export type CreateBillFormInput = z.input<typeof createBillSchema>;
 export type UpdatePaymentStatusInput = z.infer<typeof updatePaymentStatusSchema>;
-export type BillActionInput = z.infer<typeof billActionSchema>;
+export type BillAction = "approve" | "reject";

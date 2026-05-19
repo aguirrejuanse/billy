@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BillStatusBadge } from "./BillStatusBadge";
+import { BillActions } from "./BillActions";
 import { BillInfo } from "./info/BillInfo";
 import { PaymentInfo } from "./info/PaymentInfo";
 import { LineItemsInfo } from "./info/LineItemsInfo";
@@ -8,6 +9,7 @@ import type { BillWithRelations } from "@/types";
 
 interface BillDetailProps {
   bill: BillWithRelations;
+  isFetching: boolean;
 }
 
 export function BillDetailSkeleton() {
@@ -30,7 +32,7 @@ export function BillDetailSkeleton() {
   );
 }
 
-export function BillDetail({ bill }: BillDetailProps) {
+export function BillDetail({ bill, isFetching }: BillDetailProps) {
   return (
     <div className="space-y-6 max-w-3xl">
       <Link
@@ -47,7 +49,10 @@ export function BillDetail({ bill }: BillDetailProps) {
             {bill.vendor?.name ?? "Unknown vendor"}
           </p>
         </div>
-        <BillStatusBadge status={bill.status} />
+        <div className="flex items-center gap-3">
+          <BillActions bill={bill} isFetching={isFetching} />
+          <BillStatusBadge status={bill.status} />
+        </div>
       </div>
 
       <BillInfo bill={bill} />
