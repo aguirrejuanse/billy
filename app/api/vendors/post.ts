@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { vendors as vendorsTable } from "@/db/schema";
+import {
+  vendorPaymentMethods as vendorPaymentMethodsTable,
+  vendors as vendorsTable,
+} from "@/db/schema";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { createVendorSchema } from "@/lib/validators";
 
@@ -34,10 +37,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Vendor name already exists" }, { status: 409 });
     }
 
-    const [vendor] = await db
-      .insert(vendorsTable)
-      .values({ ...parsed.data, ownerId: user.id })
-      .returning();
+    const { paymentMethods, ...vendorData } = parsed.data;
+
+    const vendor = await db.transaction(async (tx) => {
+      const [v] = await tx
+        .insert(vendorsTable)
+        .values({ ...vendorData, ownerId: user.id })
+        .returning();
+
+      await tx
+        .insert(vendorPaymentMethodsTable)
+        .values(paymentMethods.map((method) => ({ vendorId: v.id, method })));
+
+      return { ...v, paymentMethods };
+    });
 
     return NextResponse.json({ data: vendor }, { status: 201 });
   } catch (error) {

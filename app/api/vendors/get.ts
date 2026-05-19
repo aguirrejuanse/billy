@@ -15,9 +15,15 @@ export async function GET() {
     const result = await db.query.vendors.findMany({
       where: accessibleVendorFilter(user.id),
       orderBy: [asc(vendorsTable.name)],
+      with: { paymentMethods: true },
     });
 
-    return NextResponse.json({ data: result });
+    const data = result.map((v) => ({
+      ...v,
+      paymentMethods: v.paymentMethods.map((pm) => pm.method),
+    }));
+
+    return NextResponse.json({ data });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error("[GET /api/vendors]", error);

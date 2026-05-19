@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { vendors as vendorsTable } from "@/db/schema";
+import {
+  vendorPaymentMethods as vendorPaymentMethodsTable,
+  vendors as vendorsTable,
+} from "@/db/schema";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { updateVendorSchema } from "@/lib/validators";
 import { isValidUuid } from "@/lib/utils";
@@ -49,11 +52,30 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       );
     }
 
-    const [updated] = await db
-      .update(vendorsTable)
-      .set({ ...parsed.data, updatedAt: new Date() })
-      .where(and(eq(vendorsTable.id, id), eq(vendorsTable.ownerId, user.id)))
-      .returning();
+    const { paymentMethods, ...vendorData } = parsed.data;
+
+    const updated = await db.transaction(async (tx) => {
+      const [v] = await tx
+        .update(vendorsTable)
+        .set({ ...vendorData, updatedAt: new Date() })
+        .where(and(eq(vendorsTable.id, id), eq(vendorsTable.ownerId, user.id)))
+        .returning();
+
+      if (paymentMethods) {
+        await tx
+          .delete(vendorPaymentMethodsTable)
+          .where(eq(vendorPaymentMethodsTable.vendorId, id));
+        await tx
+          .insert(vendorPaymentMethodsTable)
+          .values(paymentMethods.map((method) => ({ vendorId: id, method })));
+      }
+
+      const methods = await tx.query.vendorPaymentMethods.findMany({
+        where: eq(vendorPaymentMethodsTable.vendorId, id),
+      });
+
+      return { ...v, paymentMethods: methods.map((pm) => pm.method) };
+    });
 
     return NextResponse.json({ data: updated });
   } catch (error) {
