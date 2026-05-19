@@ -1,20 +1,25 @@
 import { z } from "zod";
 import { currencyEnum, paymentMethodEnum, paymentStatusEnum } from "@/db/schema";
 
-const nonEmptyString = z.string().min(1);
+const paymentMethodsArray = z.array(z.enum(paymentMethodEnum.enumValues)).min(1, {
+  message: "At least one payment method is required",
+});
 
-const paymentMethodsArray = z.array(z.enum(paymentMethodEnum.enumValues)).min(1);
+export const vendorSchemaErrorMessages = {
+  name: "Name is required",
+  email: "Invalid email address",
+};
 
 export const createVendorSchema = z.object({
-  name: nonEmptyString,
-  email: z.email().optional(),
+  name: z.string().min(1, { message: vendorSchemaErrorMessages.name }),
+  email: z.email({ error: vendorSchemaErrorMessages.email }),
   paymentMethods: paymentMethodsArray,
 });
 
 export const updateVendorSchema = z
   .object({
-    name: nonEmptyString.optional(),
-    email: z.email().optional(),
+    name: z.string().min(1, { message: vendorSchemaErrorMessages.name }).optional(),
+    email: z.email({ error: vendorSchemaErrorMessages.email }).optional(),
     paymentMethods: paymentMethodsArray.optional(),
   })
   .refine((data) => Object.keys(data).length > 0, { message: "At least one field required" });

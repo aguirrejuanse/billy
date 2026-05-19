@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -22,21 +21,18 @@ interface EditVendorSheetProps {
 }
 
 export function EditVendorSheet({ vendor, onOpenChange }: EditVendorSheetProps) {
+  const defaultVendor = {
+    name: vendor?.name,
+    email: vendor?.email ?? undefined,
+    paymentMethods: vendor?.paymentMethods as UpdateVendorInput["paymentMethods"],
+  };
+
   const methods = useForm<UpdateVendorInput>({
     resolver: zodResolver(updateVendorSchema),
+    values: vendor ? defaultVendor : undefined,
   });
 
   const { mutate: updateVendor, isPending, error: mutationError } = useUpdateVendorMutation();
-
-  useEffect(() => {
-    if (vendor) {
-      methods.reset({
-        name: vendor.name,
-        email: vendor.email ?? undefined,
-        paymentMethods: vendor.paymentMethods as UpdateVendorInput["paymentMethods"],
-      });
-    }
-  }, [vendor, methods]);
 
   const errorMessage = mutationError
     ? (mutationError.response?.data?.error ?? "Failed to update vendor. Please try again.")
@@ -48,14 +44,19 @@ export function EditVendorSheet({ vendor, onOpenChange }: EditVendorSheetProps) 
       { id: vendor.id, input: data },
       {
         onSuccess: () => {
-          onOpenChange();
+          handleOpenChange();
         },
       }
     );
   }
 
+  function handleOpenChange() {
+    methods.reset();
+    onOpenChange();
+  }
+
   return (
-    <Sheet open={!!vendor} onOpenChange={onOpenChange}>
+    <Sheet open={!!vendor} onOpenChange={handleOpenChange}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Edit Vendor</SheetTitle>

@@ -35,14 +35,18 @@ export function CreateVendorSheet({ open, onOpenChange }: CreateVendorSheetProps
     if (isPending) return;
     createVendor(data, {
       onSuccess: () => {
-        methods.reset();
-        onOpenChange();
+        handleOpenChange();
       },
     });
   }
 
+  function handleOpenChange() {
+    methods.reset();
+    onOpenChange();
+  }
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle>New Vendor</SheetTitle>
@@ -50,13 +54,7 @@ export function CreateVendorSheet({ open, onOpenChange }: CreateVendorSheetProps
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4 p-4">
             <FormInput name="name" label="Name" placeholder="Acme Corp" />
-            <FormInput
-              name="email"
-              label="Email"
-              type="email"
-              placeholder="billing@acme.com"
-              optional
-            />
+            <FormInput name="email" label="Email" type="email" placeholder="billing@acme.com" />
             <FormCheckboxGroup
               name="paymentMethods"
               label="Payment Methods"
