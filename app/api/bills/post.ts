@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import {
-  bills as billsTable,
-  billLineItems as billLineItemsTable,
-  vendors as vendorsTable,
-} from "@/db/schema";
+import { bills as billsTable, vendors as vendorsTable } from "@/db/schema";
 import { createBillSchema } from "@/lib/validators";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { createBillWithLineItems } from "@/lib/bill-queries";
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -43,24 +40,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Bill number already exists" }, { status: 409 });
     }
 
-    const { lineItems, amount, ...billData } = parsed.data;
-
-    const bill = await db.transaction(async (tx) => {
-      const [newBill] = await tx
-        .insert(billsTable)
-        .values({ ...billData, amount: String(amount), ownerId: user.id })
-        .returning();
-
-      if (lineItems?.length) {
-        await tx
-          .insert(billLineItemsTable)
-          .values(
-            lineItems.map((item) => ({ ...item, amount: String(item.amount), billId: newBill.id }))
-          );
-      }
-
-      return newBill;
-    });
+    const bill = await createBillWithLineItems({ data: parsed.data, ownerId: user.id });
 
     return NextResponse.json({ data: bill }, { status: 201 });
   } catch (error) {
