@@ -18,11 +18,25 @@ async function handleBillAction({
   action,
   bill,
 }: HandleBillActionParams): Promise<NextResponse | undefined> {
+  if (action === "submit") {
+    if (bill.status !== "draft") {
+      return NextResponse.json({ error: "Only draft bills can be submitted" }, { status: 400 });
+    }
+
+    const [updated] = await db
+      .update(billsTable)
+      .set({ status: "awaiting_approval", updatedAt: new Date() })
+      .where(and(eq(billsTable.id, bill.id), eq(billsTable.status, "draft")))
+      .returning({ id: billsTable.id });
+
+    if (!updated) throw new Error("RACE_LOST");
+    return;
+  }
+
   if (bill.status !== "awaiting_approval") {
+    const label = action === "approve" ? "approved" : "rejected";
     return NextResponse.json(
-      {
-        error: `Bill cannot be ${action === "approve" ? "approved" : "rejected"} in current status`,
-      },
+      { error: `Bill cannot be ${label} in current status` },
       { status: 400 }
     );
   }
