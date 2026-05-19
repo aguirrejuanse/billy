@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { getBillsService } from "@/services/bills";
+import { getBillsService, type BillFilters } from "@/services/bills";
 import type { BillWithRelations } from "@/types";
 
-export function useBillsQuery() {
+export function useBillsQuery(filters?: BillFilters) {
   return useQuery<BillWithRelations[]>({
-    queryKey: ["bills"],
-    queryFn: getBillsService,
+    queryKey: ["bills", filters],
+    queryFn: () => getBillsService(filters),
     placeholderData: [],
     staleTime: 30000,
   });
