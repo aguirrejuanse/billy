@@ -5,9 +5,17 @@ const nonEmptyString = z.string().min(1);
 
 export const createVendorSchema = z.object({
   name: nonEmptyString,
-  email: z.email().optional().or(z.literal("")),
+  email: z.email().optional(),
   paymentMethod: z.enum(paymentMethodEnum.enumValues),
 });
+
+export const updateVendorSchema = z
+  .object({
+    name: nonEmptyString.optional(),
+    email: z.email().optional(),
+    paymentMethod: z.enum(paymentMethodEnum.enumValues).optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, { message: "At least one field required" });
 
 export const billSchemaErrorMessages = {
   vendorId: "Please select a vendor",
@@ -53,6 +61,7 @@ export const billActionSchema = z.object({
 });
 
 export type CreateVendorInput = z.infer<typeof createVendorSchema>;
+export type UpdateVendorInput = z.infer<typeof updateVendorSchema>;
 export type CreateBillInput = z.infer<typeof createBillSchema>;
 export type CreateBillFormInput = z.input<typeof createBillSchema>;
 export type UpdatePaymentStatusInput = z.infer<typeof updatePaymentStatusSchema>;

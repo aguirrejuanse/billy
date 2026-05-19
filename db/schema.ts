@@ -34,6 +34,7 @@ export const vendors = pgTable("vendors", {
   name: text("name").notNull(),
   email: text("email"),
   paymentMethod: paymentMethodEnum("payment_method").notNull().default("ach"),
+  ownerId: uuid("owner_id").references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -92,7 +93,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   bills: many(bills),
 }));
 
-export const vendorsRelations = relations(vendors, ({ many }) => ({
+export const vendorsRelations = relations(vendors, ({ one, many }) => ({
+  owner: one(users, { fields: [vendors.ownerId], references: [users.id] }),
   bills: many(bills),
   payments: many(payments),
 }));
