@@ -9,6 +9,7 @@ import { useVendorsQuery } from "@/hooks/useVendorsQuery";
 import { useCreateBillMutation } from "@/hooks/useCreateBillMutation";
 import { FormInput, FormTextarea, FormSelect, FormDateInput } from "@/components/ui/form-fields";
 import { LineItemsField } from "./LineItemsField";
+import Link from "next/link";
 
 interface CreateBillFormProps {
   onSuccess: () => void;
@@ -33,12 +34,36 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
   });
 
   const invoiceDate = useWatch({ control: methods.control, name: "invoiceDate" });
+  const selectedVendorId = useWatch({ control: methods.control, name: "vendorId" });
+
+  const selectedVendor = vendors.find((v) => v.id === selectedVendorId);
+  const availablePaymentOptions = selectedVendor
+    ? PAYMENT_METHOD_OPTIONS.filter((opt) => selectedVendor.paymentMethods.includes(opt.value))
+    : PAYMENT_METHOD_OPTIONS;
 
   useEffect(() => {
     if (vendors.length > 0 && !methods.getValues("vendorId")) {
       methods.setValue("vendorId", vendors[0].id);
     }
   }, [vendors]);
+
+  useEffect(() => {
+    if (!selectedVendor) return;
+    if (selectedVendor.paymentMethods.length === 1) {
+      methods.setValue(
+        "paymentType",
+        selectedVendor.paymentMethods[0] as CreateBillInput["paymentType"]
+      );
+    } else {
+      const current = methods.getValues("paymentType");
+      if (current && !selectedVendor.paymentMethods.includes(current)) {
+        methods.setValue(
+          "paymentType",
+          selectedVendor.paymentMethods[0] as CreateBillInput["paymentType"]
+        );
+      }
+    }
+  }, [selectedVendorId, vendors]);
 
   const errorMessage = mutationError
     ? (mutationError.response?.data?.error ?? "Failed to create bill. Please try again.")
@@ -92,7 +117,28 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
           <FormDateInput name="dueDate" label="Due Date" min={invoiceDate} />
         </div>
 
-        <FormSelect name="paymentType" label="Payment Type" options={PAYMENT_METHOD_OPTIONS} />
+        {selectedVendor && selectedVendor.paymentMethods.length === 0 ? (
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Payment Type</p>
+            <p className="text-sm text-muted-foreground">
+              This vendor has no payment methods configured.{" "}
+              <Link
+                href="/vendors"
+                className="underline underline-offset-4 hover:text-foreground transition-colors"
+              >
+                Go to Vendors
+              </Link>{" "}
+              to add one.
+            </p>
+          </div>
+        ) : (
+          <FormSelect
+            name="paymentType"
+            label="Payment Type"
+            options={availablePaymentOptions}
+            disabled={selectedVendor?.paymentMethods.length === 1}
+          />
+        )}
 
         <div className="border-t pt-4">
           <LineItemsField />

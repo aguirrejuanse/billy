@@ -33,7 +33,7 @@ const mockVendor = {
   id: "b2c3d4e5-f6a7-4890-bc23-de45fa678901",
   name: "Acme Corp",
   email: null,
-  paymentMethod: paymentMethodEnum.enumValues[0],
+  paymentMethods: [paymentMethodEnum.enumValues[0]],
   ownerId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
