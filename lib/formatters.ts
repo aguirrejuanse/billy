@@ -22,6 +22,14 @@ export const paymentStatusLabels: Record<Payment["status"], string> = {
   failed: "Failed",
 };
 
+export const billStatusLabels: Record<Bill["status"], string> = {
+  draft: "Draft",
+  awaiting_approval: "Awaiting Approval",
+  approved: "Approved",
+  rejected: "Rejected",
+  archived: "Archived",
+};
+
 export function formatCurrency(amount: number | string, currency = "USD"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

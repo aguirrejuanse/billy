@@ -1,5 +1,6 @@
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { billStatusLabels } from "@/lib/formatters";
 import type { Bill } from "@/types";
 
 const badgeVariants = cva("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", {
@@ -14,19 +15,13 @@ const badgeVariants = cva("inline-flex items-center rounded-full px-2 py-0.5 tex
   },
 });
 
-const statusLabels: Record<Bill["status"], string> = {
-  draft: "Draft",
-  awaiting_approval: "Awaiting Approval",
-  approved: "Approved",
-  rejected: "Rejected",
-  archived: "Archived",
-};
-
 interface BillStatusBadgeProps {
   status: Bill["status"];
   className?: string;
 }
 
 export function BillStatusBadge({ status, className }: BillStatusBadgeProps) {
-  return <span className={cn(badgeVariants({ status }), className)}>{statusLabels[status]}</span>;
+  return (
+    <span className={cn(badgeVariants({ status }), className)}>{billStatusLabels[status]}</span>
+  );
 }
