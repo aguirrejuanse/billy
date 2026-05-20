@@ -59,16 +59,17 @@ pnpm dev       # http://localhost:3000
 
 The full spec is in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.1.0).
 
-| Method | Path               | Description                                                                            |
-| ------ | ------------------ | -------------------------------------------------------------------------------------- |
-| GET    | `/api/bills`       | List bills for the authenticated user (`?status=`, `?vendorId=`)                       |
-| POST   | `/api/bills`       | Create a new bill (with optional line items)                                           |
-| GET    | `/api/bills/:id`   | Get a single bill with payment and line items                                          |
-| PATCH  | `/api/bills/:id`   | Submit, approve, or reject a bill (`{ action: "submit" \| "approve" \| "reject" }`)    |
-| GET    | `/api/vendors`     | List accessible vendors (global + own), with payment methods                           |
-| POST   | `/api/vendors`     | Create a private vendor                                                                |
-| PATCH  | `/api/vendors/:id` | Update a private vendor's name, email, or payment methods                              |
-| GET    | `/api/payments`    | List payments for the authenticated user (`?status=`, `?paymentMethod=`, `?vendorId=`) |
+| Method | Path                 | Description                                                                            |
+| ------ | -------------------- | -------------------------------------------------------------------------------------- |
+| GET    | `/api/bills`         | List bills for the authenticated user (`?status=`, `?vendorId=`)                       |
+| POST   | `/api/bills`         | Create a new bill (with optional line items)                                           |
+| GET    | `/api/bills/:id`     | Get a single bill with payment and line items                                          |
+| PATCH  | `/api/bills/:id`     | Submit, approve, or reject a bill (`{ action: "submit" \| "approve" \| "reject" }`)    |
+| GET    | `/api/vendors`       | List accessible vendors (global + own), with payment methods                           |
+| POST   | `/api/vendors`       | Create a private vendor                                                                |
+| PATCH  | `/api/vendors/:id`   | Update a private vendor's name, email, or payment methods                              |
+| GET    | `/api/payments`      | List payments for the authenticated user (`?status=`, `?paymentMethod=`, `?vendorId=`) |
+| GET    | `/api/reports/aging` | AP Aging Report — open bills bucketed by days past due, grouped by vendor              |
 
 All endpoints require a valid Clerk session. Responses follow `{ data }` on success and `{ error }` on failure.
 
@@ -179,7 +180,7 @@ Types are inferred directly from the Drizzle schema via `InferSelectModel` — s
 | US-03 | As an AP Manager, I want to filter bills by status and vendor so I can prioritize my work queue.               | ✅ Done |
 | US-04 | As an AP Manager, I want to view a bill's full detail including line items and payment info.                   | ✅ Done |
 | US-05 | As an AP Manager, I want to approve or reject a bill so I can control which invoices get paid.                 | ✅ Done |
-| US-06 | As a Finance Manager, I want an AP Aging Report grouped by overdue buckets so I can manage cash flow risk.     | 🔲 Todo |
+| US-06 | As a Finance Manager, I want an AP Aging Report grouped by overdue buckets so I can manage cash flow risk.     | ✅ Done |
 | US-07 | As an AP Manager, I want to submit a draft bill for approval so it enters the approval queue.                  | ✅ Done |
 | US-08 | As a Finance Manager, I want to see a list of all payments so I can track fund transfers and their status.     | ✅ Done |
 | US-09 | As an AP Manager, I want to manage vendors so I can register and update the companies I pay.                   | ✅ Done |
