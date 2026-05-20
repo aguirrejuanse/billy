@@ -29,16 +29,16 @@ Copy `.env.example` to `.env.local` and fill in the values:
 cp .env.example .env.local
 ```
 
-| Variable                              | Description                                        |
-| ------------------------------------- | -------------------------------------------------- |
-| `DATABASE_URL`                        | Neon connection string                             |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`   | Clerk publishable key                              |
-| `CLERK_SECRET_KEY`                    | Clerk secret key                                   |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_URL`       | Sign-in route (default: `/sign-in`)                |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_URL`       | Sign-up route (default: `/sign-up`)                |
-| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | Redirect after sign-in (default: `/bills`)         |
-| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | Redirect after sign-up (default: `/bills`)         |
-| `NEXT_PUBLIC_APP_URL`                 | Base URL of the app (e.g. `http://localhost:3000`) |
+| Variable                              | Description                                                        |
+| ------------------------------------- | ------------------------------------------------------------------ |
+| `DATABASE_URL`                        | Neon PostgreSQL connection string                                  |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`   | Clerk publishable key (from your Clerk dashboard)                  |
+| `CLERK_SECRET_KEY`                    | Clerk secret key (from your Clerk dashboard)                       |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL`       | Path for the sign-in page (default: `/sign-in`)                    |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL`       | Path for the sign-up page (default: `/sign-up`)                    |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | Path to redirect to after a successful sign-in (default: `/bills`) |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | Path to redirect to after a successful sign-up (default: `/bills`) |
+| `NEXT_PUBLIC_APP_URL`                 | Base URL of the app (e.g., `http://localhost:3000`)                |
 
 ### Database
 
@@ -59,17 +59,17 @@ pnpm dev       # http://localhost:3000
 
 The full spec is in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.1.0).
 
-| Method | Path                 | Description                                                                            |
-| ------ | -------------------- | -------------------------------------------------------------------------------------- |
-| GET    | `/api/bills`         | List bills for the authenticated user (`?status=`, `?vendorId=`)                       |
-| POST   | `/api/bills`         | Create a new bill (with optional line items)                                           |
-| GET    | `/api/bills/:id`     | Get a single bill with payment and line items                                          |
-| PATCH  | `/api/bills/:id`     | Submit, approve, or reject a bill (`{ action: "submit" \| "approve" \| "reject" }`)    |
-| GET    | `/api/vendors`       | List accessible vendors (global + own), with payment methods                           |
-| POST   | `/api/vendors`       | Create a private vendor                                                                |
-| PATCH  | `/api/vendors/:id`   | Update a private vendor's name, email, or payment methods                              |
-| GET    | `/api/payments`      | List payments for the authenticated user (`?status=`, `?paymentMethod=`, `?vendorId=`) |
-| GET    | `/api/reports/aging` | AP Aging Report — open bills bucketed by days past due, grouped by vendor              |
+| Method | Path                 | Description                                                                                             |
+| ------ | -------------------- | ------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/bills`         | List bills for the authenticated user. Supports `?status=` and `?vendorId=` filters.                    |
+| POST   | `/api/bills`         | Create a new bill with optional line items.                                                             |
+| GET    | `/api/bills/:id`     | Get a single bill including its vendor, line items, and payment.                                        |
+| PATCH  | `/api/bills/:id`     | Transition a bill's status. Accepts `{ action: "submit" \| "approve" \| "reject" }`.                    |
+| GET    | `/api/vendors`       | List all accessible vendors (global and user-owned), each with their payment methods.                   |
+| POST   | `/api/vendors`       | Create a new private vendor owned by the authenticated user.                                            |
+| PATCH  | `/api/vendors/:id`   | Update a private vendor's name, email, or payment methods.                                              |
+| GET    | `/api/payments`      | List payments for the authenticated user. Supports `?status=`, `?paymentMethod=`, `?vendorId=` filters. |
+| GET    | `/api/reports/aging` | AP Aging Report — open bills bucketed by days past due, grouped by vendor.                              |
 
 All endpoints require a valid Clerk session. Responses follow `{ data }` on success and `{ error }` on failure.
 
@@ -86,7 +86,7 @@ Draft → Awaiting Approval → Approved → [Payment auto-created]
                          ↘ Rejected → Archived
 ```
 
-Bills start as drafts, get submitted for approval, and transition atomically: approving a bill creates a scheduled payment in the same database transaction. No payment without an approved bill. No approved bill without a payment.
+Bills start as drafts, get submitted for approval, and transition atomically — approval and payment creation happen in a single DB transaction. See [Key decisions](#key-decisions) for the rationale.
 
 ### Payment Lifecycle
 
@@ -99,16 +99,7 @@ Payments are first-class objects. Finance teams can track status, mark as paid, 
 
 ### AP Aging Report
 
-Overdue bills grouped by aging bucket: 0–30, 31–60, 61–90, 90+ days. This is the report every AP team actually uses to manage cash flow. Including it signals product understanding, not just CRUD fluency.
-
-### Supporting features
-
-- Vendors CRUD (name, email, payment methods) with mixed ownership model (global + private)
-- Bills table with tabs as work queues: Drafts · Awaiting Approval · For Payment · History
-- Filters: status, vendor, amount range, due date range — stored in URL params (bookmarkable, server-side)
-- Sortable columns: vendor, amount, status, due date
-- Bill detail page with contextual actions per status
-- Line items per bill
+Overdue bills bucketed by days past due (0–30, 31–60, 61–90, 90+), grouped by vendor. This is the report every AP team actually uses to manage cash flow.
 
 ---
 
@@ -122,7 +113,7 @@ Overdue bills grouped by aging bucket: 0–30, 31–60, 61–90, 90+ days. This 
 | Bulk actions             | Low value with demo-scale data. Natural v2 once the single-record flow is solid.                             |
 | CSV export               | v2.                                                                                                          |
 
-**On approval model:** In production, the approver would be a different user than the bill creator. Billy allows self-approval for demo simplicity. This is noted explicitly — the data model supports adding a role check at the API layer without schema changes.
+**On the approval model:** In production, the approver would be a different user than the bill creator. Billy allows self-approval for demo simplicity — the data model supports adding a role check at the API layer without any schema changes.
 
 ---
 
@@ -141,19 +132,19 @@ Overdue bills grouped by aging bucket: 0–30, 31–60, 61–90, 90+ days. This 
 ### Key decisions
 
 **`amount` as `numeric(12,2)`, not `float`**
-Floating-point arithmetic is wrong for money. `numeric` gives exact decimal storage at the Postgres layer. Drizzle maps it to `string` in TypeScript — we parse to `number` only at the formatting layer.
+Floating-point arithmetic is wrong for money. `numeric` provides exact decimal storage at the Postgres layer. Drizzle maps it to `string` in TypeScript — we parse to `number` only at the formatting layer.
 
-**`status` as Postgres enum, not a string column**
-Enums enforce valid values at the database level. Transition gating lives in the API (`POST /api/bills/[id]/actions`) — invalid transitions return `400` with a clear error message.
+**`status` as a Postgres enum, not a string column**
+Enums enforce valid values at the database level. Transition gating lives in the API — invalid transitions return `400` with a clear error message.
 
-**Approve as an atomic DB transaction**
+**Bill approval as an atomic DB transaction**
 `bill.status → approved` and `INSERT INTO payments` happen in a single transaction. Either both succeed or neither does. No approved bill without a payment; no orphaned payment without an approved bill.
 
 **URL as filter state**
-Filters are stored in URL search params, not React state. The Server Component reads them directly and filters server-side. Bookmarkable, shareable, and no client-side waterfall.
+Filters are stored in URL search params, not React state. The Server Component reads them directly and filters server-side — bookmarkable, shareable, and no client-side waterfall.
 
 **`bill_line_items` with CASCADE**
-Deleting a bill deletes its line items. No orphaned rows, no soft-delete complexity at this scope.
+Deleting a bill cascades to its line items. No orphaned rows, no soft-delete complexity at this scope.
 
 ### Data model
 
