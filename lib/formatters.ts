@@ -6,7 +6,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
+export const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 export const paymentMethodLabels: Record<Bill["paymentType"], string> = {
   ach: "ACH",
@@ -39,7 +39,7 @@ export function formatCurrency(amount: number | string, currency = "USD"): strin
 }
 
 // TODO: migrate date() columns to { mode: "date" } in schema.ts to unify to Date.
-function isoDateToLocal(date: string): Date {
+export function isoDateToLocal(date: string): Date {
   return new Date(`${date}T00:00:00`);
 }
 
