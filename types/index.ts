@@ -21,3 +21,29 @@ export type PaymentWithRelations = Payment & {
 export interface BillDetailParams {
   id: string;
 }
+
+export interface AgingRow {
+  vendorId: string;
+  vendorName: string;
+  current: number;
+  days1_30: number;
+  days31_60: number;
+  days61_90: number;
+  days90plus: number;
+  total: number;
+}
+
+export type AgingNumericKey = {
+  [K in keyof AgingRow]: AgingRow[K] extends number ? K : never;
+}[keyof AgingRow];
+
+export interface AgingSummary {
+  totalOutstanding: number;
+  totalOverdue: number;
+  overdueBillCount: number;
+}
+
+export interface AgingReportData {
+  rows: AgingRow[];
+  summary: AgingSummary;
+}

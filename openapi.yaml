@@ -267,6 +267,46 @@ components:
             enum: [ach, wire, check, card]
           example: [wire]
 
+    AgingRow:
+      type: object
+      properties:
+        vendorId:
+          type: string
+          format: uuid
+        vendorName:
+          type: string
+        current:
+          type: number
+          description: Amount not yet overdue
+        days1_30:
+          type: number
+          description: Amount 1–30 days past due
+        days31_60:
+          type: number
+          description: Amount 31–60 days past due
+        days61_90:
+          type: number
+          description: Amount 61–90 days past due
+        days90plus:
+          type: number
+          description: Amount more than 90 days past due
+        total:
+          type: number
+          description: Total outstanding for this vendor
+
+    AgingSummary:
+      type: object
+      properties:
+        totalOutstanding:
+          type: number
+          description: Sum of all open bill amounts
+        totalOverdue:
+          type: number
+          description: Sum of all overdue bill amounts (excludes current bucket)
+        overdueBillCount:
+          type: integer
+          description: Number of individual bills past their due date
+
     ErrorResponse:
       type: object
       properties:
@@ -810,6 +850,43 @@ paths:
                   summary: Non-UUID vendorId
                   value:
                     error: Invalid vendorId
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /reports/aging:
+    get:
+      summary: AP Aging Report — open bills bucketed by days past due, grouped by vendor
+      operationId: getAgingReport
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      rows:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AgingRow"
+                        description: One row per vendor with open bills, sorted by vendor name
+                      summary:
+                        $ref: "#/components/schemas/AgingSummary"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Unauthorized
         "500":
           description: Internal server error
           content:
