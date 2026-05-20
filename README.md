@@ -159,7 +159,7 @@ Types are inferred directly from the Drizzle schema via `InferSelectModel` — s
 
 ## Development Process
 
-Each feature followed a structured workflow: implement → `/simplify` (refactor for reuse and quality) → red team (harden edge cases and security) → write tests → `/pr` (update README + OpenAPI, fill PR template, review before creating). All conventions, gotchas, and architectural decisions are captured in [`CLAUDE.md`](./CLAUDE.md)
+Each feature followed a structured workflow: implement → `/simplify` (refactor for reuse and quality) → red team (harden edge cases and security) → write tests → `/pr` (update README + OpenAPI, fill PR template, review before creating). All conventions, gotchas, and architectural decisions are captured in [`CLAUDE.md`](./CLAUDE.md).
 
 See [`docs/ai-workflow.md`](./docs/ai-workflow.md) for the full breakdown: skills used, evidence in the repo, and skills worth building for future projects.
 

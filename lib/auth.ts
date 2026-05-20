@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -14,11 +14,34 @@ export async function getAuthenticatedUser(): Promise<AuthSuccess | AuthFailure>
     return { user: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
 
-  const user = await db.query.users.findFirst({
+  let user = await db.query.users.findFirst({
     where: eq(users.clerkId, clerkId),
   });
+
   if (!user) {
-    return { user: null, error: NextResponse.json({ error: "User not found" }, { status: 404 }) };
+    const clerkUser = await currentUser();
+    if (!clerkUser) {
+      return { user: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+    }
+
+    const email = clerkUser.emailAddresses[0]?.emailAddress ?? "";
+    const firstName = clerkUser.firstName ?? "";
+    const lastName = clerkUser.lastName ?? "";
+    const name = [firstName, lastName].filter(Boolean).join(" ") || email;
+
+    const [inserted] = await db
+      .insert(users)
+      .values({ clerkId, name, email })
+      .onConflictDoNothing()
+      .returning();
+
+    // onConflictDoNothing returns nothing on race condition — refetch
+    user =
+      inserted ?? (await db.query.users.findFirst({ where: eq(users.clerkId, clerkId) })) ?? null;
+
+    if (!user) {
+      return { user: null, error: NextResponse.json({ error: "User not found" }, { status: 404 }) };
+    }
   }
 
   return { user, error: null };
