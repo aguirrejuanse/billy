@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { createBillSchema, billSchemaErrorMessages } from "./validators";
+import {
+  createBillSchema,
+  billSchemaErrorMessages,
+  createVendorSchema,
+  updateVendorSchema,
+  vendorSchemaErrorMessages,
+} from "./validators";
 import { currencyEnum, paymentMethodEnum } from "@/db/schema";
 
 const validBill = {
@@ -154,6 +160,130 @@ describe("createBillSchema", () => {
       });
       expect(result.success).toBe(false);
       expect(findLineItemIssue(result, "amount")?.message).toBe(billSchemaErrorMessages.amount);
+    });
+  });
+});
+
+const validVendor = {
+  name: "Acme Corp",
+  email: "billing@acme.com",
+  paymentMethods: [paymentMethodEnum.enumValues[0]],
+};
+
+function findVendorIssue(
+  result: ReturnType<(typeof createVendorSchema | typeof updateVendorSchema)["safeParse"]>,
+  path: string
+) {
+  if (result.success) return undefined;
+  return result.error.issues.find((i) => i.path[0] === path);
+}
+
+describe("createVendorSchema", () => {
+  describe("happy path", () => {
+    it("accepts valid input", () => {
+      expect(createVendorSchema.safeParse(validVendor).success).toBe(true);
+    });
+
+    it("accepts multiple payment methods", () => {
+      const result = createVendorSchema.safeParse({
+        ...validVendor,
+        paymentMethods: [paymentMethodEnum.enumValues[0], paymentMethodEnum.enumValues[1]],
+      });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("name", () => {
+    it("rejects missing name", () => {
+      const { name: _, ...withoutName } = validVendor;
+      const result = createVendorSchema.safeParse(withoutName);
+      expect(result.success).toBe(false);
+      expect(findVendorIssue(result, "name")).toBeDefined();
+    });
+
+    it("rejects empty name", () => {
+      const result = createVendorSchema.safeParse({ ...validVendor, name: "" });
+      expect(result.success).toBe(false);
+      expect(findVendorIssue(result, "name")?.message).toBe(vendorSchemaErrorMessages.name);
+    });
+  });
+
+  describe("email", () => {
+    it("rejects invalid email", () => {
+      const result = createVendorSchema.safeParse({ ...validVendor, email: "not-an-email" });
+      expect(result.success).toBe(false);
+      expect(findVendorIssue(result, "email")?.message).toBe(vendorSchemaErrorMessages.email);
+    });
+  });
+
+  describe("paymentMethods", () => {
+    it("rejects empty array", () => {
+      const result = createVendorSchema.safeParse({ ...validVendor, paymentMethods: [] });
+      expect(result.success).toBe(false);
+      expect(findVendorIssue(result, "paymentMethods")?.message).toBe(
+        "At least one payment method is required"
+      );
+    });
+
+    it("rejects invalid payment method value", () => {
+      const result = createVendorSchema.safeParse({
+        ...validVendor,
+        paymentMethods: ["bitcoin"],
+      });
+      expect(result.success).toBe(false);
+      expect(findVendorIssue(result, "paymentMethods")).toBeDefined();
+    });
+  });
+});
+
+describe("updateVendorSchema", () => {
+  describe("happy path", () => {
+    it("accepts name only", () => {
+      expect(updateVendorSchema.safeParse({ name: "New Name" }).success).toBe(true);
+    });
+
+    it("accepts paymentMethods only", () => {
+      expect(
+        updateVendorSchema.safeParse({ paymentMethods: [paymentMethodEnum.enumValues[0]] }).success
+      ).toBe(true);
+    });
+
+    it("accepts email only", () => {
+      expect(updateVendorSchema.safeParse({ email: "new@email.com" }).success).toBe(true);
+    });
+  });
+
+  describe("empty body", () => {
+    it("rejects empty object", () => {
+      const result = updateVendorSchema.safeParse({});
+      expect(result.success).toBe(false);
+      expect(result.error?.issues[0]?.message).toBe("At least one field required");
+    });
+  });
+
+  describe("name", () => {
+    it("rejects empty string when provided", () => {
+      const result = updateVendorSchema.safeParse({ name: "" });
+      expect(result.success).toBe(false);
+      expect(findVendorIssue(result, "name")?.message).toBe(vendorSchemaErrorMessages.name);
+    });
+  });
+
+  describe("email", () => {
+    it("rejects invalid email when provided", () => {
+      const result = updateVendorSchema.safeParse({ email: "not-an-email" });
+      expect(result.success).toBe(false);
+      expect(findVendorIssue(result, "email")?.message).toBe(vendorSchemaErrorMessages.email);
+    });
+  });
+
+  describe("paymentMethods", () => {
+    it("rejects empty array when provided", () => {
+      const result = updateVendorSchema.safeParse({ paymentMethods: [] });
+      expect(result.success).toBe(false);
+      expect(findVendorIssue(result, "paymentMethods")?.message).toBe(
+        "At least one payment method is required"
+      );
     });
   });
 });
