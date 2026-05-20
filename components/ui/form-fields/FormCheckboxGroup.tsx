@@ -40,6 +40,7 @@ export function FormCheckboxGroup({ name, label, options, optional }: FormCheckb
             <button
               key={opt.value}
               type="button"
+              aria-pressed={checked}
               onClick={() => toggle(opt.value)}
               className={`rounded-full border px-3 py-1 text-sm font-medium transition-colors cursor-pointer ${
                 checked

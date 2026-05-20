@@ -95,9 +95,7 @@ export function VendorsTable({ vendors, isLoading, error, onRetry, onEdit }: Ven
                   {vendor.email ?? "—"}
                 </TableCell>
                 <TableCell className="text-sm">
-                  {vendor.paymentMethods
-                    .map((m) => paymentMethodLabels[m as keyof typeof paymentMethodLabels])
-                    .join(", ")}
+                  {vendor.paymentMethods.map((m) => paymentMethodLabels[m]).join(", ")}
                 </TableCell>
                 <TableCell>
                   {vendor.ownerId === null ? (

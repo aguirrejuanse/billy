@@ -19,14 +19,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  const { id } = await params;
+  if (!isValidUuid(id)) {
+    return NextResponse.json({ error: "Invalid vendor id" }, { status: 422 });
+  }
+
   try {
     const { user, error } = await getAuthenticatedUser();
     if (error) return error;
-
-    const { id } = await params;
-    if (!isValidUuid(id)) {
-      return NextResponse.json({ error: "Invalid vendor id" }, { status: 422 });
-    }
 
     const vendor = await db.query.vendors.findFirst({
       where: eq(vendorsTable.id, id),
