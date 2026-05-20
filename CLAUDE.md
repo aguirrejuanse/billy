@@ -47,7 +47,9 @@ lib/
 ├── validators.ts     # Zod schemas
 └── utils.ts          # cn(), general utils
 services/
-└── bills.ts          # getBillsService, etc.
+├── bills.ts          # getBillsService, billActionService, etc.
+├── vendors.ts        # getVendorsService, createVendorService, etc.
+└── payments.ts       # getPaymentsService
 types/
 └── index.ts          # BillWithRelations, PaymentWithRelations
 ```
@@ -62,18 +64,22 @@ types/
 - `updatedAt` must be set manually on every PATCH — Postgres doesn't auto-update it
 - Drizzle `pgEnum.enumValues` in Zod validators — single source of truth, no duplicated string arrays
 - Approve bill is an atomic DB transaction: `bill.status → approved` + `INSERT payment`
-- Vendors are global/shared — no `ownerId`, all authenticated users see the same vendor list. This is intentional.
+- Vendors use a mixed ownership model: global vendors (`ownerId IS NULL`) are visible to all users and read-only; private vendors (`ownerId = user.id`) are visible and editable only by their creator. Use `or(isNull(vendorsTable.ownerId), eq(vendorsTable.ownerId, user.id))` to filter accessible vendors.
+- `vendor_payment_methods` is a join table (`vendorId` FK + `method` enum). Never store arrays of enums as `text[]` — Drizzle cannot change a column type via `db:push` without data loss.
+- `VendorWithMethods` (in `types/index.ts`) extends `Vendor` with `paymentMethods: string[]` — always use this type in services, hooks, and components that deal with vendor payment methods.
+- Reusable Drizzle filter helpers live in `db/filters.ts` (e.g. `accessibleVendorFilter`).
 
 ### API Routes
 
 - Always wrap in `try/catch` — never let errors escape unhandled
 - Use `getAuthenticatedUser()` from `lib/auth.ts` in every protected route — never inline the Clerk + DB lookup
 - Response format: `{ data }` for success, `{ error }` for failures
-- Add `export const maxDuration = 30` to every API route file
+- Add `export const maxDuration = 30` to every handler file (`get.ts`, `post.ts`) — never in `route.ts`, that would be a duplicate
 - Validate referenced resources before INSERT (e.g. vendor before bill) — return 422 if not found
 - Validate uniqueness per owner before INSERT — return 409 if duplicate
 - API routes return 401 JSON for unauthenticated requests — middleware handles this separately from page redirects
 - Use `z.iso.date()` for date fields in Zod — stricter than regex, rejects invalid dates like `2020-01-32`
+- When a table has no `ownerId`, filter by ownership via `INNER JOIN` on the related table that does. Use `db.select().from().innerJoin()` instead of `db.query.findMany()` for this pattern — the relational query API doesn't support filtering by related table fields in `where`.
 
 ### Hooks & Services
 
@@ -84,6 +90,7 @@ types/
 
 ### Components
 
+- Page titles live in `pageTitles` record in `components/layout/TopBar.tsx` — never add `<h1>` to dashboard pages, the TopBar already renders it
 - Client Components need `"use client"` — default is Server Component in App Router
 - shadcn components live in `components/ui/` — never modify them directly
 - Status badges use CVA variants — add new statuses to `BillStatusBadge`
@@ -107,7 +114,6 @@ Export both types from `lib/validators.ts`: `z.infer<>` for the output, `z.input
 
 ## Workflow
 
-- User executes all terminal commands — Claude only instructs what to run and waits for output
 - Run `/simplify` after creating utility files (formatters, validators, hooks, etc.)
 - Commit after each logical step with conventional commits
 - One branch per feature: `feat/[feature-name]`
@@ -153,6 +159,14 @@ pnpm dlx shadcn@latest add [component]
 
 ## Gotchas & Tribal Knowledge
 
+### `formatCurrency` caches `Intl.NumberFormat` per currency
+
+`Intl.NumberFormat` is expensive to instantiate. `formatCurrency` uses a module-level `Map` (`currencyFormatterCache`) to cache one instance per currency. `isoDateToLocal` and `MS_PER_DAY` are also exported from `lib/formatters.ts` and are reusable in API routes and services.
+
+### `isError` vs `!data` in React Query pages
+
+These are distinct states. `isError=true` → request failed, show error + retry. `!data` with `isError=false` → TypeScript narrowing, never visible in practice → `return null`. Do not collapse both into `if (isError || !data)`. Empty state is handled internally by the table component.
+
 ### Server Components can't fetch their own API with auth
 
 Next.js Server Components run in Node.js without browser cookies — Clerk auth fails on internal fetch calls. Use Client Components with React Query for authenticated data fetching.
@@ -172,3 +186,60 @@ Wrapping `<html>` with a Client Component (e.g. `ReactQueryProvider`) breaks CSS
 ### `auth.protect()` redirects instead of returning 401
 
 Clerk's `auth.protect()` in middleware redirects to sign-in instead of returning a JSON 401. For API routes, use `const { userId } = await auth()` and return `NextResponse.json({ error: "Unauthorized" }, { status: 401 })` manually. See `middleware.ts` for the `isApiRoute` pattern.
+
+### `Select.onValueChange` can pass `null`
+
+Base UI's `Select` (used via shadcn) types `onValueChange` as `(value: string | null, ...) => void`. Never pass a `(v: string) => void` handler directly — TypeScript will reject it. Always wrap with a null guard:
+
+```ts
+onValueChange={(v) => { if (v !== null) onChange(v); }}
+```
+
+### Zod action schemas must match exactly what the handler implements
+
+If `billActionSchema` accepts `["submit", "approve", "reject", "archive"]` but the handler only implements `"approve"` and `"reject"`, a client sending `{ action: "submit" }` will pass validation and silently fall into the `else` branch (reject). Keep the enum in sync with what the code actually handles.
+
+### React Query `queryKey` — never pass a filter object directly
+
+`queryKey: ["bills", filters]` causes unnecessary refetches because React Query compares by object identity. Spread individual scalar values instead:
+
+```ts
+queryKey: ["bills", filters?.status, filters?.vendorId];
+```
+
+### `payments` table has no `ownerId` — filter via bill JOIN
+
+`payments` intentionally has no `ownerId`. Ownership is derived via the bill. Use `INNER JOIN bills WHERE bills.ownerId = user.id` — never add `ownerId` to payments directly, it would create an invariant (`payment.ownerId === bill.ownerId`) with no performance benefit at this scale.
+
+### `isNull()` from drizzle-orm is a SQL node, not a boolean
+
+`isNull(table.column)` constructs a SQL expression — it is always truthy in JS. Never use it in an `if` statement or boolean check. Use `value === null` to check fetched data, and `isNull()` only inside Drizzle `where` clauses.
+
+### Union type handlers — always end with `action satisfies never`
+
+When branching over a union type (BillAction, status, etc.), end with `action satisfies never`. TypeScript will error at compile time if a new union member is added without a handler. Works in if/else chains and switch statements.
+
+```ts
+if (action === "submit") { ... return; }
+if (action === "approve") { ... return; }
+if (action === "reject") { ... return; }
+action satisfies never; // compile error if BillAction grows
+```
+
+Each action branch must be independent with its own status guard — no shared guard at the top. This is what enables the exhaustiveness check to work correctly.
+
+### Test date helpers — use `getFullYear/getMonth/getDate`, not `toISOString()`
+
+When building ISO date strings in tests (`"YYYY-MM-DD"`), never use `new Date().toISOString().split("T")[0]` — it converts to UTC before the split, returning tomorrow's date in UTC-N timezones past a certain hour. Always reset to local midnight first and use local getters:
+
+```ts
+function daysAgo(n: number): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - n);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+```

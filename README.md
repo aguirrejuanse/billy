@@ -97,10 +97,6 @@ Scheduled → Initiated → Paid
 
 Payments are first-class objects. Finance teams can track status, mark as paid, and retry failures — independently of the bill that originated them.
 
-### AP Aging Report
-
-Overdue bills bucketed by days past due (0–30, 31–60, 61–90, 90+), grouped by vendor. This is the report every AP team actually uses to manage cash flow.
-
 ---
 
 ## What's Out and Why
@@ -158,6 +154,14 @@ payments             — bill_id, vendor_id, amount, status, scheduled_date, pay
 ```
 
 Types are inferred directly from the Drizzle schema via `InferSelectModel` — single source of truth, no duplication between schema and TypeScript types.
+
+---
+
+## Development Process
+
+Each feature followed a structured workflow: implement → `/simplify` (refactor for reuse and quality) → red team (harden edge cases and security) → write tests → `/pr` (update README + OpenAPI, fill PR template, review before creating). All conventions, gotchas, and architectural decisions are captured in [`CLAUDE.md`](./CLAUDE.md)
+
+See [`docs/ai-workflow.md`](./docs/ai-workflow.md) for the full breakdown: skills used, evidence in the repo, and skills worth building for future projects.
 
 ---
 
