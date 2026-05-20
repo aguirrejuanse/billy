@@ -15,6 +15,7 @@ interface FormSelectProps {
   placeholder?: string;
   optional?: boolean;
   disabled?: boolean;
+  multiple?: boolean;
 }
 
 export function FormSelect({
@@ -24,6 +25,7 @@ export function FormSelect({
   placeholder,
   optional,
   disabled,
+  multiple,
 }: FormSelectProps) {
   const { register } = useFormContext();
 
@@ -32,6 +34,8 @@ export function FormSelect({
       <select
         {...register(name)}
         disabled={disabled}
+        multiple={multiple}
+        size={multiple ? Math.min(options.length, 4) : undefined}
         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
       >
         {placeholder && (

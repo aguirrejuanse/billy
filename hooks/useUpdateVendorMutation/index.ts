@@ -1,0 +1,1 @@
+export { useUpdateVendorMutation } from "./useUpdateVendorMutation";

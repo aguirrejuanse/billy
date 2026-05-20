@@ -59,14 +59,16 @@ pnpm dev       # http://localhost:3000
 
 The full spec is in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.1.0).
 
-| Method | Path             | Description                                                                            |
-| ------ | ---------------- | -------------------------------------------------------------------------------------- |
-| GET    | `/api/bills`     | List bills for the authenticated user (`?status=`, `?vendorId=`)                       |
-| POST   | `/api/bills`     | Create a new bill (with optional line items)                                           |
-| GET    | `/api/bills/:id` | Get a single bill with payment and line items                                          |
-| PATCH  | `/api/bills/:id` | Submit, approve, or reject a bill (`{ action: "submit" \| "approve" \| "reject" }`)    |
-| GET    | `/api/vendors`   | List all vendors                                                                       |
-| GET    | `/api/payments`  | List payments for the authenticated user (`?status=`, `?paymentMethod=`, `?vendorId=`) |
+| Method | Path               | Description                                                                            |
+| ------ | ------------------ | -------------------------------------------------------------------------------------- |
+| GET    | `/api/bills`       | List bills for the authenticated user (`?status=`, `?vendorId=`)                       |
+| POST   | `/api/bills`       | Create a new bill (with optional line items)                                           |
+| GET    | `/api/bills/:id`   | Get a single bill with payment and line items                                          |
+| PATCH  | `/api/bills/:id`   | Submit, approve, or reject a bill (`{ action: "submit" \| "approve" \| "reject" }`)    |
+| GET    | `/api/vendors`     | List accessible vendors (global + own), with payment methods                           |
+| POST   | `/api/vendors`     | Create a private vendor                                                                |
+| PATCH  | `/api/vendors/:id` | Update a private vendor's name, email, or payment methods                              |
+| GET    | `/api/payments`    | List payments for the authenticated user (`?status=`, `?paymentMethod=`, `?vendorId=`) |
 
 All endpoints require a valid Clerk session. Responses follow `{ data }` on success and `{ error }` on failure.
 
@@ -100,7 +102,7 @@ Overdue bills grouped by aging bucket: 0–30, 31–60, 61–90, 90+ days. This 
 
 ### Supporting features
 
-- Vendors CRUD (name, email, default payment method)
+- Vendors CRUD (name, email, payment methods) with mixed ownership model (global + private)
 - Bills table with tabs as work queues: Drafts · Awaiting Approval · For Payment · History
 - Filters: status, vendor, amount range, due date range — stored in URL params (bookmarkable, server-side)
 - Sortable columns: vendor, amount, status, due date
@@ -155,11 +157,12 @@ Deleting a bill deletes its line items. No orphaned rows, no soft-delete complex
 ### Data model
 
 ```
-users         — clerk_id, name, email
-vendors       — name, email, payment_method
-bills         — vendor_id, owner_id, number, amount, status, invoice_date, due_date, payment_type
-bill_line_items — bill_id (CASCADE), description, amount, account_code
-payments      — bill_id, vendor_id, amount, status, scheduled_date, payment_method
+users                — clerk_id, name, email
+vendors              — name, email, owner_id (null = global)
+vendor_payment_methods — vendor_id (CASCADE), method (enum)
+bills                — vendor_id, owner_id, number, amount, status, invoice_date, due_date, payment_type
+bill_line_items      — bill_id (CASCADE), description, amount, account_code
+payments             — bill_id, vendor_id, amount, status, scheduled_date, payment_method
 ```
 
 Types are inferred directly from the Drizzle schema via `InferSelectModel` — single source of truth, no duplication between schema and TypeScript types.
@@ -179,5 +182,5 @@ Types are inferred directly from the Drizzle schema via `InferSelectModel` — s
 | US-06 | As a Finance Manager, I want an AP Aging Report grouped by overdue buckets so I can manage cash flow risk.     | 🔲 Todo |
 | US-07 | As an AP Manager, I want to submit a draft bill for approval so it enters the approval queue.                  | ✅ Done |
 | US-08 | As a Finance Manager, I want to see a list of all payments so I can track fund transfers and their status.     | ✅ Done |
-| US-09 | As an AP Manager, I want to manage vendors so I can register and update the companies I pay.                   | 🔲 Todo |
+| US-09 | As an AP Manager, I want to manage vendors so I can register and update the companies I pay.                   | ✅ Done |
 | US-10 | As a user, I want a polished UI with consistent colors and visual hierarchy so the app feels production-ready. | 🔲 Todo |

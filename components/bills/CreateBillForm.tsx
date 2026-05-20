@@ -9,6 +9,8 @@ import { useVendorsQuery } from "@/hooks/useVendorsQuery";
 import { useCreateBillMutation } from "@/hooks/useCreateBillMutation";
 import { FormInput, FormTextarea, FormSelect, FormDateInput } from "@/components/ui/form-fields";
 import { LineItemsField } from "./LineItemsField";
+import { paymentMethodLabels } from "@/lib/formatters";
+import Link from "next/link";
 
 interface CreateBillFormProps {
   onSuccess: () => void;
@@ -16,7 +18,7 @@ interface CreateBillFormProps {
 
 const PAYMENT_METHOD_OPTIONS = paymentMethodEnum.enumValues.map((v) => ({
   value: v,
-  label: { ach: "ACH", wire: "Wire", check: "Check", card: "Card" }[v] ?? v,
+  label: paymentMethodLabels[v],
 }));
 
 const CURRENCY_OPTIONS = currencyEnum.enumValues.map((v) => ({ value: v, label: v }));
@@ -33,12 +35,30 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
   });
 
   const invoiceDate = useWatch({ control: methods.control, name: "invoiceDate" });
+  const selectedVendorId = useWatch({ control: methods.control, name: "vendorId" });
+
+  const selectedVendor = vendors.find((v) => v.id === selectedVendorId) ?? vendors[0];
+  const availablePaymentOptions = selectedVendor
+    ? PAYMENT_METHOD_OPTIONS.filter((opt) => selectedVendor.paymentMethods.includes(opt.value))
+    : PAYMENT_METHOD_OPTIONS;
 
   useEffect(() => {
-    if (vendors.length > 0 && !methods.getValues("vendorId")) {
-      methods.setValue("vendorId", vendors[0].id);
+    if (vendors.length === 0) return;
+
+    const currentVendorId = methods.getValues("vendorId");
+    const effectiveVendorId = currentVendorId || vendors[0].id;
+    if (!currentVendorId) {
+      methods.setValue("vendorId", effectiveVendorId);
     }
-  }, [vendors]);
+
+    const vendor = vendors.find((v) => v.id === effectiveVendorId);
+    if (!vendor || vendor.paymentMethods.length === 0) return;
+
+    const firstMethod = vendor.paymentMethods[0] as CreateBillInput["paymentType"];
+    if (methods.getValues("paymentType") !== firstMethod) {
+      methods.setValue("paymentType", firstMethod);
+    }
+  }, [vendors, selectedVendorId]);
 
   const errorMessage = mutationError
     ? (mutationError.response?.data?.error ?? "Failed to create bill. Please try again.")
@@ -92,7 +112,28 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
           <FormDateInput name="dueDate" label="Due Date" min={invoiceDate} />
         </div>
 
-        <FormSelect name="paymentType" label="Payment Type" options={PAYMENT_METHOD_OPTIONS} />
+        {selectedVendor && selectedVendor.paymentMethods.length === 0 ? (
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Payment Type</p>
+            <p className="text-sm text-muted-foreground">
+              This vendor has no payment methods configured.{" "}
+              <Link
+                href="/vendors"
+                className="underline underline-offset-4 hover:text-foreground transition-colors"
+              >
+                Go to Vendors
+              </Link>{" "}
+              to add one.
+            </p>
+          </div>
+        ) : (
+          <FormSelect
+            name="paymentType"
+            label="Payment Type"
+            options={availablePaymentOptions}
+            disabled={selectedVendor?.paymentMethods.length === 1}
+          />
+        )}
 
         <div className="border-t pt-4">
           <LineItemsField />

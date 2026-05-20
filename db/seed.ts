@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import "dotenv/config";
+import { inArray } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
 
@@ -30,14 +31,53 @@ async function main() {
 }
 
 const vendorValues: schema.NewVendor[] = [
-  { name: "Acme Corp", email: "billing@acme.com", paymentMethod: "ach" },
-  { name: "Globex Inc", email: "ap@globex.com", paymentMethod: "wire" },
-  { name: "Initech LLC", email: "invoices@initech.com", paymentMethod: "check" },
+  { name: "Acme Corp", email: "billing@acme.com" },
+  { name: "Globex Inc", email: "ap@globex.com" },
+  { name: "Initech LLC", email: "invoices@initech.com" },
+];
+
+const vendorPaymentMethodValues: {
+  name: string;
+  methods: schema.VendorPaymentMethod["method"][];
+}[] = [
+  { name: "Acme Corp", methods: ["ach", "wire"] },
+  { name: "Globex Inc", methods: ["wire"] },
+  { name: "Initech LLC", methods: ["check", "ach"] },
 ];
 
 async function seedVendorsAndBills(ownerId: string) {
-  // Vendors
-  const [acme, globex, initech] = await db.insert(schema.vendors).values(vendorValues).returning();
+  // Find or create global vendors
+  const existingVendors = await db.query.vendors.findMany({
+    where: (v, { inArray, isNull, and }) =>
+      and(
+        inArray(
+          v.name,
+          vendorValues.map((vv) => vv.name)
+        ),
+        isNull(v.ownerId)
+      ),
+  });
+
+  const toInsert = vendorValues.filter((vv) => !existingVendors.find((v) => v.name === vv.name));
+  const newVendors =
+    toInsert.length > 0 ? await db.insert(schema.vendors).values(toInsert).returning() : [];
+
+  const allVendors = [...existingVendors, ...newVendors];
+  const [acme, globex, initech] = vendorValues.map(
+    (vv) => allVendors.find((v) => v.name === vv.name)!
+  );
+
+  // Repopulate payment methods (delete existing first to avoid duplicates)
+  await db
+    .delete(schema.vendorPaymentMethods)
+    .where(inArray(schema.vendorPaymentMethods.vendorId, [acme.id, globex.id, initech.id]));
+
+  await db.insert(schema.vendorPaymentMethods).values(
+    [acme, globex, initech].flatMap((vendor) => {
+      const entry = vendorPaymentMethodValues.find((v) => v.name === vendor.name)!;
+      return entry.methods.map((method) => ({ vendorId: vendor.id, method }));
+    })
+  );
 
   console.log("Vendors created");
 

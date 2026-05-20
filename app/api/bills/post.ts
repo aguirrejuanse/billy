@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
+import { accessibleVendorFilter } from "@/db/filters";
 import { bills as billsTable, vendors as vendorsTable } from "@/db/schema";
 import { createBillSchema } from "@/lib/validators";
 import { getAuthenticatedUser } from "@/lib/auth";
@@ -27,7 +28,9 @@ export async function POST(request: NextRequest) {
     }
 
     const [vendor, existingBill] = await Promise.all([
-      db.query.vendors.findFirst({ where: eq(vendorsTable.id, parsed.data.vendorId) }),
+      db.query.vendors.findFirst({
+        where: and(eq(vendorsTable.id, parsed.data.vendorId), accessibleVendorFilter(user.id)),
+      }),
       db.query.bills.findFirst({
         where: and(eq(billsTable.number, parsed.data.number), eq(billsTable.ownerId, user.id)),
       }),

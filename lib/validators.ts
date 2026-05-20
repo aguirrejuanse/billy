@@ -1,13 +1,28 @@
 import { z } from "zod";
 import { currencyEnum, paymentMethodEnum, paymentStatusEnum } from "@/db/schema";
 
-const nonEmptyString = z.string().min(1);
+const paymentMethodsArray = z.array(z.enum(paymentMethodEnum.enumValues)).min(1, {
+  message: "At least one payment method is required",
+});
+
+export const vendorSchemaErrorMessages = {
+  name: "Name is required",
+  email: "Invalid email address",
+};
 
 export const createVendorSchema = z.object({
-  name: nonEmptyString,
-  email: z.email().optional().or(z.literal("")),
-  paymentMethod: z.enum(paymentMethodEnum.enumValues),
+  name: z.string().min(1, { message: vendorSchemaErrorMessages.name }),
+  email: z.email({ error: vendorSchemaErrorMessages.email }),
+  paymentMethods: paymentMethodsArray,
 });
+
+export const updateVendorSchema = z
+  .object({
+    name: z.string().min(1, { message: vendorSchemaErrorMessages.name }).optional(),
+    email: z.email({ error: vendorSchemaErrorMessages.email }).optional(),
+    paymentMethods: paymentMethodsArray.optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, { message: "At least one field required" });
 
 export const billSchemaErrorMessages = {
   vendorId: "Please select a vendor",
@@ -53,6 +68,7 @@ export const billActionSchema = z.object({
 });
 
 export type CreateVendorInput = z.infer<typeof createVendorSchema>;
+export type UpdateVendorInput = z.infer<typeof updateVendorSchema>;
 export type CreateBillInput = z.infer<typeof createBillSchema>;
 export type CreateBillFormInput = z.input<typeof createBillSchema>;
 export type UpdatePaymentStatusInput = z.infer<typeof updatePaymentStatusSchema>;

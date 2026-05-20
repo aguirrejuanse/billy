@@ -204,15 +204,68 @@ components:
         email:
           type: string
           nullable: true
-        paymentMethod:
+        ownerId:
           type: string
-          enum: [ach, wire, check, card]
+          format: uuid
+          nullable: true
+          description: null for global vendors (read-only), user UUID for private vendors
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    VendorWithMethods:
+      allOf:
+        - $ref: "#/components/schemas/Vendor"
+        - type: object
+          properties:
+            paymentMethods:
+              type: array
+              items:
+                type: string
+                enum: [ach, wire, check, card]
+
+    CreateVendorBody:
+      type: object
+      required:
+        - name
+        - email
+        - paymentMethods
+      properties:
+        name:
+          type: string
+          example: Acme Corp
+        email:
+          type: string
+          format: email
+          example: billing@acme.com
+        paymentMethods:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: [ach, wire, check, card]
+          example: [ach, wire]
+
+    UpdateVendorBody:
+      type: object
+      properties:
+        name:
+          type: string
+          example: New Name
+        email:
+          type: string
+          format: email
+          example: new@email.com
+        paymentMethods:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: [ach, wire, check, card]
+          example: [wire]
 
     ErrorResponse:
       type: object
@@ -533,7 +586,7 @@ paths:
 
   /vendors:
     get:
-      summary: List all vendors
+      summary: List accessible vendors (global + own), ordered by name
       operationId: getVendors
       responses:
         "200":
@@ -546,13 +599,142 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Vendor"
+                      $ref: "#/components/schemas/VendorWithMethods"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+
+    post:
+      summary: Create a private vendor
+      operationId: createVendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVendorBody"
+            example:
+              name: Acme Corp
+              email: billing@acme.com
+              paymentMethods: [ach, wire]
+      responses:
+        "201":
+          description: Vendor created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/VendorWithMethods"
+        "400":
+          description: Malformed JSON body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Invalid JSON body
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Vendor name already exists for this user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Vendor name already exists
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+
+  /vendors/{id}:
+    patch:
+      summary: Update a private vendor
+      operationId: updateVendor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVendorBody"
+      responses:
+        "200":
+          description: Vendor updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/VendorWithMethods"
+        "400":
+          description: Malformed JSON body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Invalid JSON body
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Cannot edit a global vendor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Cannot edit a global vendor
+        "404":
+          description: Vendor not found or not owned by the authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Vendor not found
+        "422":
+          description: Validation error or invalid UUID param
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_id:
+                  summary: Non-UUID id param
+                  value:
+                    error: Invalid vendor id
+                empty_body:
+                  summary: Empty update body
+                  value:
+                    error: At least one field required
         "500":
           description: Internal server error
 
