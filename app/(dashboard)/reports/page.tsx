@@ -6,6 +6,7 @@ import {
   AgingSummaryCardsSkeleton,
 } from "@/components/reports/AgingSummaryCards";
 import { AgingTable, AgingTableSkeleton } from "@/components/reports/AgingTable";
+import { Button } from "@/components/ui/button";
 
 export default function ReportsPage() {
   const { data, isLoading, isError, refetch } = useAgingReportQuery();
@@ -23,12 +24,9 @@ export default function ReportsPage() {
     return (
       <div className="flex flex-col items-start gap-2">
         <p className="text-sm text-destructive">Failed to load aging report.</p>
-        <button
-          onClick={() => refetch()}
-          className="text-sm font-medium underline underline-offset-4 cursor-pointer"
-        >
+        <Button variant="link" className="p-0 h-auto" onClick={() => refetch()}>
           Try again
-        </button>
+        </Button>
       </div>
     );
   }

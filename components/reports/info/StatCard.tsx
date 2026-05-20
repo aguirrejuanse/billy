@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   label: string;
@@ -14,7 +15,7 @@ export function StatCard({ label, value, valueClassName, description }: StatCard
         <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className={`text-2xl font-semibold ${valueClassName ?? ""}`}>{value}</p>
+        <p className={cn("text-2xl font-semibold", valueClassName)}>{value}</p>
         {description && <p className="text-xs text-muted-foreground mt-1">{description}</p>}
       </CardContent>
     </Card>

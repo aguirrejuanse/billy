@@ -80,7 +80,7 @@ export async function GET(_request: NextRequest) {
     const { totalOutstanding, totalOverdue } = agingRows.reduce(
       (acc, row) => {
         acc.totalOutstanding += row.total;
-        acc.totalOverdue += row.days1_30 + row.days31_60 + row.days61_90 + row.days90plus;
+        acc.totalOverdue += row.total - row.current;
         return acc;
       },
       { totalOutstanding: 0, totalOverdue: 0 }
