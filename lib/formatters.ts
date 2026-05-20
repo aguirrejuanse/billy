@@ -30,12 +30,23 @@ export const billStatusLabels: Record<Bill["status"], string> = {
   archived: "Archived",
 };
 
+const currencyFormatterCache = new Map<string, Intl.NumberFormat>();
+
+function getCurrencyFormatter(currency: string): Intl.NumberFormat {
+  let formatter = currencyFormatterCache.get(currency);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+    });
+    currencyFormatterCache.set(currency, formatter);
+  }
+  return formatter;
+}
+
 export function formatCurrency(amount: number | string, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(Number(amount));
+  return getCurrencyFormatter(currency).format(Number(amount));
 }
 
 // TODO: migrate date() columns to { mode: "date" } in schema.ts to unify to Date.

@@ -33,6 +33,10 @@ export interface AgingRow {
   total: number;
 }
 
+export type AgingNumericKey = {
+  [K in keyof AgingRow]: AgingRow[K] extends number ? K : never;
+}[keyof AgingRow];
+
 export interface AgingSummary {
   totalOutstanding: number;
   totalOverdue: number;
