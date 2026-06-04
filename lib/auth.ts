@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { cookies } from "next/headers";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import type { User } from "@/types";
@@ -9,7 +10,12 @@ type AuthSuccess = { user: User; error: null };
 type AuthFailure = { user: null; error: NextResponse };
 
 export async function getAuthenticatedUser(): Promise<AuthSuccess | AuthFailure> {
-  const { userId: clerkId } = await auth();
+  const cookieStore = await cookies();
+  const isDemo = cookieStore.get("demo-session")?.value === "true";
+  const demoClerkId = process.env.DEMO_CLERK_ID;
+
+  const clerkId = isDemo && demoClerkId ? demoClerkId : (await auth()).userId;
+
   if (!clerkId) {
     return { user: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
