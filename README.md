@@ -169,16 +169,23 @@ See [`docs/ai-workflow.md`](./docs/ai-workflow.md) for the full breakdown: skill
 
 ## User Stories
 
-| ID    | Story                                                                                                          | Status  |
-| ----- | -------------------------------------------------------------------------------------------------------------- | ------- |
-| US-00 | As a developer, I want realistic seed data so I can develop and demo the system without manual data entry.     | ✅ Done |
-| US-01 | As an AP Manager, I want to see a list of all my bills so I can have an overview of pending payables.          | ✅ Done |
-| US-02 | As an AP Manager, I want to create a new bill with line items so I can register vendor invoices.               | ✅ Done |
-| US-03 | As an AP Manager, I want to filter bills by status and vendor so I can prioritize my work queue.               | ✅ Done |
-| US-04 | As an AP Manager, I want to view a bill's full detail including line items and payment info.                   | ✅ Done |
-| US-05 | As an AP Manager, I want to approve or reject a bill so I can control which invoices get paid.                 | ✅ Done |
-| US-06 | As a Finance Manager, I want an AP Aging Report grouped by overdue buckets so I can manage cash flow risk.     | ✅ Done |
-| US-07 | As an AP Manager, I want to submit a draft bill for approval so it enters the approval queue.                  | ✅ Done |
-| US-08 | As a Finance Manager, I want to see a list of all payments so I can track fund transfers and their status.     | ✅ Done |
-| US-09 | As an AP Manager, I want to manage vendors so I can register and update the companies I pay.                   | ✅ Done |
-| US-10 | As a user, I want a polished UI with consistent colors and visual hierarchy so the app feels production-ready. | 🔲 Todo |
+| ID    | Story                                                                                                                            | Status  |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| US-00 | As a developer, I want realistic seed data so I can develop and demo the system without manual data entry.                       | ✅ Done |
+| US-01 | As an AP Manager, I want to see a list of all my bills so I can have an overview of pending payables.                            | ✅ Done |
+| US-02 | As an AP Manager, I want to create a new bill with line items so I can register vendor invoices.                                 | ✅ Done |
+| US-03 | As an AP Manager, I want to filter bills by status and vendor so I can prioritize my work queue.                                 | ✅ Done |
+| US-04 | As an AP Manager, I want to view a bill's full detail including line items and payment info.                                     | ✅ Done |
+| US-05 | As an AP Manager, I want to approve or reject a bill so I can control which invoices get paid.                                   | ✅ Done |
+| US-06 | As a Finance Manager, I want an AP Aging Report grouped by overdue buckets so I can manage cash flow risk.                       | ✅ Done |
+| US-07 | As an AP Manager, I want to submit a draft bill for approval so it enters the approval queue.                                    | ✅ Done |
+| US-08 | As a Finance Manager, I want to see a list of all payments so I can track fund transfers and their status.                       | ✅ Done |
+| US-09 | As an AP Manager, I want to manage vendors so I can register and update the companies I pay.                                     | ✅ Done |
+| US-10 | As a user, I want a polished UI with consistent colors and visual hierarchy so the app feels production-ready.                   | 🔲 Todo |
+| US-11 | As a reviewer, I want to try the app instantly without signing up so I can evaluate it without friction.                         | 🔲 Todo |
+| US-13 | As a Finance Manager, I want to mark payments as paid or retry failed payments so I can keep payment statuses accurate.          | 🔲 Todo |
+| US-14 | As an AP Manager, I want to archive rejected bills so I can keep my active queue clean.                                          | 🔲 Todo |
+| US-15 | As an AP Manager, I want to import bills from a CSV so I can onboard invoices in bulk.                                           | 🔲 Todo |
+| US-16 | As an AP Manager, I want to export bills and payments to CSV so I can share data with my team or import into other tools.        | 🔲 Todo |
+| US-17 | As a Finance Manager, I want to download the AP Aging Report as CSV so I can analyze it offline.                                 | 🔲 Todo |
+| US-18 | As an AP Manager, I want to select multiple bills and approve, reject, or archive them in bulk so I can process my queue faster. | 🔲 Todo |
