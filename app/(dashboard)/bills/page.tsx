@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useBillsQuery } from "@/hooks/useBillsQuery";
+import { useDemoTour } from "@/hooks/useDemoTour";
 import { BillsTable } from "@/components/bills/BillsTable";
 import { BillsFilters } from "@/components/bills/BillsFilters";
 import { CreateBillSheet } from "@/components/bills/CreateBillSheet";
@@ -23,6 +24,8 @@ export default function BillsPage() {
 
   const toggleCreateBill = () => setOpenCreateBill((prev) => !prev);
 
+  useDemoTour({ isLoading: isPlaceholderData });
+
   return (
     <>
       <div className="space-y-4">
@@ -31,6 +34,7 @@ export default function BillsPage() {
           <button
             onClick={toggleCreateBill}
             disabled={isPlaceholderData}
+            data-tour="new-bill"
             className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             New Bill

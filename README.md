@@ -114,7 +114,6 @@ Payments are first-class objects. Finance teams can track status, mark as paid, 
 | Real ACH / wire payments | Would require setting up a payment gateway. No time, and not what this demo is evaluating.                   |
 | Multi-approver chains    | Single-user demo — one person plays all roles. The model supports adding role checks without schema changes. |
 | Bulk actions             | Low value with demo-scale data. Natural v2 once the single-record flow is solid.                             |
-| CSV export               | v2.                                                                                                          |
 
 **On the approval model:** In production, the approver would be a different user than the bill creator. Billy allows self-approval for demo simplicity — the data model supports adding a role check at the API layer without any schema changes.
 
@@ -194,4 +193,4 @@ See [`docs/ai-workflow.md`](./docs/ai-workflow.md) for the full breakdown: skill
 | US-16 | As an AP Manager, I want to export bills and payments to CSV so I can share data with my team or import into other tools.        | 🔲 Todo |
 | US-17 | As a Finance Manager, I want to download the AP Aging Report as CSV so I can analyze it offline.                                 | 🔲 Todo |
 | US-18 | As an AP Manager, I want to select multiple bills and approve, reject, or archive them in bulk so I can process my queue faster. | 🔲 Todo |
-| US-19 | As a reviewer, I want a guided demo tour with tooltips so I can understand key features without exploring on my own.             | 🔲 Todo |
+| US-19 | As a reviewer, I want a guided demo tour with tooltips so I can understand key features without exploring on my own.             | ✅ Done |

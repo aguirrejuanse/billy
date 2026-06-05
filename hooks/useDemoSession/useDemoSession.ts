@@ -3,7 +3,6 @@ import { useRouter } from "next/navigation";
 import { demoSignOutService } from "@/services/auth";
 import { useDemoLoginMutation } from "@/hooks/useDemoLoginMutation";
 import { useMeQuery } from "@/hooks/useMeQuery";
-
 export function useDemoSession() {
   const router = useRouter();
   const queryClient = useQueryClient();
