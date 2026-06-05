@@ -49,7 +49,7 @@ lib/
 services/
 ├── bills.ts          # getBillsService, billActionService, etc.
 ├── vendors.ts        # getVendorsService, createVendorService, etc.
-└── payments.ts       # getPaymentsService
+└── payments.ts       # getPaymentsService, paymentActionService
 types/
 └── index.ts          # BillWithRelations, PaymentWithRelations
 ```
@@ -251,6 +251,17 @@ vi.mock("some/module", () => ({
   someExport: vi.fn().mockResolvedValue({ set: mockFn }),
 }));
 ```
+
+### Payment lifecycle — manual actions, no background processor
+
+`scheduled → [Release] → initiated → [Mark as paid] → paid`
+`initiated → [fails externally] → failed → [Retry] → scheduled`
+
+All three actions (release, mark_paid, retry) are manual Finance Manager actions — same model as Ramp. `PATCH /api/payments/:id` accepts `{ action: "release" | "mark_paid" | "retry" }`.
+
+`ACTION_CONFIG` in `patch.ts` is a lookup table keyed by `PaymentAction` — each entry declares `requiredStatus`, `errorMessage`, and `patch` fields. `handlePaymentAction` uses it to drive a single `db.update` instead of three separate if-branches. Adding a new action is a one-liner in the config.
+
+The PATCH handler does two SELECTs: the first fetches the payment with an ownership JOIN (`bills.ownerId = user.id`); the second re-fetches after the update to build `PaymentWithRelations` for the response — both must include the ownership filter. A missing filter on the second SELECT is an IDOR vector.
 
 ### Test date helpers — use `getFullYear/getMonth/getDate`, not `toISOString()`
 

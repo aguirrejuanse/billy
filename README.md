@@ -72,6 +72,7 @@ The full spec is in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.1.0).
 | POST   | `/api/vendors`          | Create a new private vendor owned by the authenticated user.                                            |
 | PATCH  | `/api/vendors/:id`      | Update a private vendor's name, email, or payment methods.                                              |
 | GET    | `/api/payments`         | List payments for the authenticated user. Supports `?status=`, `?paymentMethod=`, `?vendorId=` filters. |
+| PATCH  | `/api/payments/:id`     | Transition a payment's status. Accepts `{ action: "release" \| "mark_paid" \| "retry" }`.               |
 | GET    | `/api/reports/aging`    | AP Aging Report — open bills bucketed by days past due, grouped by vendor.                              |
 | POST   | `/api/auth/demo`        | Start a demo session — sets an httpOnly cookie valid for 8 hours. Requires `DEMO_CLERK_ID` env var.     |
 | POST   | `/api/auth/demo/logout` | End the demo session — deletes the demo cookie.                                                         |
@@ -187,7 +188,7 @@ See [`docs/ai-workflow.md`](./docs/ai-workflow.md) for the full breakdown: skill
 | US-09 | As an AP Manager, I want to manage vendors so I can register and update the companies I pay.                                     | ✅ Done |
 | US-10 | As a user, I want a polished UI with consistent colors and visual hierarchy so the app feels production-ready.                   | 🔲 Todo |
 | US-11 | As a reviewer, I want to try the app instantly without signing up so I can evaluate it without friction.                         | ✅ Done |
-| US-13 | As a Finance Manager, I want to mark payments as paid or retry failed payments so I can keep payment statuses accurate.          | 🔲 Todo |
+| US-13 | As a Finance Manager, I want to mark payments as paid or retry failed payments so I can keep payment statuses accurate.          | ✅ Done |
 | US-14 | As an AP Manager, I want to archive rejected bills so I can keep my active queue clean.                                          | 🔲 Todo |
 | US-15 | As an AP Manager, I want to import bills from a CSV so I can onboard invoices in bulk.                                           | 🔲 Todo |
 | US-16 | As an AP Manager, I want to export bills and payments to CSV so I can share data with my team or import into other tools.        | 🔲 Todo |
