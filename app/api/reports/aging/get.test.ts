@@ -46,10 +46,15 @@ function makeRow(
 
 function mockAuth(authenticated = true) {
   if (authenticated) {
-    vi.mocked(getAuthenticatedUser).mockResolvedValue({ user: mockUser, error: null });
+    vi.mocked(getAuthenticatedUser).mockResolvedValue({
+      user: mockUser,
+      isDemo: false,
+      error: null,
+    });
   } else {
     vi.mocked(getAuthenticatedUser).mockResolvedValue({
       user: null,
+      isDemo: false,
       error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
     });
   }
