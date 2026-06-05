@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { FileText, CreditCard, Building2, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDemoSession } from "@/hooks/useDemoSession";
 
 const navItems = [
   { href: "/bills", label: "Bills", icon: FileText },
@@ -15,6 +16,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { isDemo, user, signOut } = useDemoSession();
 
   return (
     <aside className="w-56 shrink-0 flex flex-col h-screen border-r bg-sidebar">
@@ -41,7 +43,24 @@ export function Sidebar() {
       </nav>
 
       <div className="px-4 py-4 border-t">
-        <UserButton showName />
+        {isDemo ? (
+          <div className="flex items-center gap-2">
+            <div className="size-7 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground shrink-0">
+              {user?.name?.[0]?.toUpperCase() ?? "D"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user?.name ?? "Demo User"}</p>
+              <button
+                onClick={signOut}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Exit demo
+              </button>
+            </div>
+          </div>
+        ) : (
+          <UserButton showName />
+        )}
       </div>
     </aside>
   );
