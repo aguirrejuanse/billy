@@ -31,16 +31,17 @@ Copy `.env.example` to `.env.local` and fill in the values:
 cp .env.example .env.local
 ```
 
-| Variable                              | Description                                                        |
-| ------------------------------------- | ------------------------------------------------------------------ |
-| `DATABASE_URL`                        | Neon PostgreSQL connection string                                  |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`   | Clerk publishable key (from your Clerk dashboard)                  |
-| `CLERK_SECRET_KEY`                    | Clerk secret key (from your Clerk dashboard)                       |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_URL`       | Path for the sign-in page (default: `/sign-in`)                    |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_URL`       | Path for the sign-up page (default: `/sign-up`)                    |
-| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | Path to redirect to after a successful sign-in (default: `/bills`) |
-| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | Path to redirect to after a successful sign-up (default: `/bills`) |
-| `NEXT_PUBLIC_APP_URL`                 | Base URL of the app (e.g., `http://localhost:3000`)                |
+| Variable                              | Description                                                                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                        | Neon PostgreSQL connection string                                                                       |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`   | Clerk publishable key (from your Clerk dashboard)                                                       |
+| `CLERK_SECRET_KEY`                    | Clerk secret key (from your Clerk dashboard)                                                            |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL`       | Path for the sign-in page (default: `/sign-in`)                                                         |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL`       | Path for the sign-up page (default: `/sign-up`)                                                         |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | Path to redirect to after a successful sign-in (default: `/bills`)                                      |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | Path to redirect to after a successful sign-up (default: `/bills`)                                      |
+| `NEXT_PUBLIC_APP_URL`                 | Base URL of the app (e.g., `http://localhost:3000`)                                                     |
+| `DEMO_CLERK_ID`                       | Clerk user ID for the demo account — must exist in the `users` table. Enables the one-click demo login. |
 
 ### Database
 
@@ -61,19 +62,22 @@ pnpm dev       # http://localhost:3000
 
 The full spec is in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.1.0).
 
-| Method | Path                 | Description                                                                                             |
-| ------ | -------------------- | ------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/bills`         | List bills for the authenticated user. Supports `?status=` and `?vendorId=` filters.                    |
-| POST   | `/api/bills`         | Create a new bill with optional line items.                                                             |
-| GET    | `/api/bills/:id`     | Get a single bill including its vendor, line items, and payment.                                        |
-| PATCH  | `/api/bills/:id`     | Transition a bill's status. Accepts `{ action: "submit" \| "approve" \| "reject" }`.                    |
-| GET    | `/api/vendors`       | List all accessible vendors (global and user-owned), each with their payment methods.                   |
-| POST   | `/api/vendors`       | Create a new private vendor owned by the authenticated user.                                            |
-| PATCH  | `/api/vendors/:id`   | Update a private vendor's name, email, or payment methods.                                              |
-| GET    | `/api/payments`      | List payments for the authenticated user. Supports `?status=`, `?paymentMethod=`, `?vendorId=` filters. |
-| GET    | `/api/reports/aging` | AP Aging Report — open bills bucketed by days past due, grouped by vendor.                              |
+| Method | Path                    | Description                                                                                             |
+| ------ | ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/bills`            | List bills for the authenticated user. Supports `?status=` and `?vendorId=` filters.                    |
+| POST   | `/api/bills`            | Create a new bill with optional line items.                                                             |
+| GET    | `/api/bills/:id`        | Get a single bill including its vendor, line items, and payment.                                        |
+| PATCH  | `/api/bills/:id`        | Transition a bill's status. Accepts `{ action: "submit" \| "approve" \| "reject" }`.                    |
+| GET    | `/api/vendors`          | List all accessible vendors (global and user-owned), each with their payment methods.                   |
+| POST   | `/api/vendors`          | Create a new private vendor owned by the authenticated user.                                            |
+| PATCH  | `/api/vendors/:id`      | Update a private vendor's name, email, or payment methods.                                              |
+| GET    | `/api/payments`         | List payments for the authenticated user. Supports `?status=`, `?paymentMethod=`, `?vendorId=` filters. |
+| GET    | `/api/reports/aging`    | AP Aging Report — open bills bucketed by days past due, grouped by vendor.                              |
+| POST   | `/api/auth/demo`        | Start a demo session — sets an httpOnly cookie valid for 8 hours. Requires `DEMO_CLERK_ID` env var.     |
+| POST   | `/api/auth/demo/logout` | End the demo session — deletes the demo cookie.                                                         |
+| GET    | `/api/auth/me`          | Return current user's name, email, and whether it's a demo session.                                     |
 
-All endpoints require a valid Clerk session. Responses follow `{ data }` on success and `{ error }` on failure.
+All endpoints except `/api/auth/demo` and `/api/auth/demo/logout` require a valid Clerk or demo session. Responses follow `{ data }` on success and `{ error }` on failure.
 
 ---
 
@@ -182,7 +186,7 @@ See [`docs/ai-workflow.md`](./docs/ai-workflow.md) for the full breakdown: skill
 | US-08 | As a Finance Manager, I want to see a list of all payments so I can track fund transfers and their status.                       | ✅ Done |
 | US-09 | As an AP Manager, I want to manage vendors so I can register and update the companies I pay.                                     | ✅ Done |
 | US-10 | As a user, I want a polished UI with consistent colors and visual hierarchy so the app feels production-ready.                   | 🔲 Todo |
-| US-11 | As a reviewer, I want to try the app instantly without signing up so I can evaluate it without friction.                         | 🔲 Todo |
+| US-11 | As a reviewer, I want to try the app instantly without signing up so I can evaluate it without friction.                         | ✅ Done |
 | US-13 | As a Finance Manager, I want to mark payments as paid or retry failed payments so I can keep payment statuses accurate.          | 🔲 Todo |
 | US-14 | As an AP Manager, I want to archive rejected bills so I can keep my active queue clean.                                          | 🔲 Todo |
 | US-15 | As an AP Manager, I want to import bills from a CSV so I can onboard invoices in bulk.                                           | 🔲 Todo |

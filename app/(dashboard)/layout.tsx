@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
@@ -8,8 +9,13 @@ interface DashboardLayoutProps {
 }
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
+  const cookieStore = await cookies();
+  const isDemo = cookieStore.get("demo-session")?.value === "true";
+
+  if (!isDemo) {
+    const { userId } = await auth();
+    if (!userId) redirect("/sign-in");
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">

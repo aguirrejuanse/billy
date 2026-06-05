@@ -1,11 +1,14 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/api/auth/demo"]);
 const isApiRoute = createRouteMatcher(["/api(.*)"]);
 
 export default clerkMiddleware(async (auth, request) => {
   if (isPublicRoute(request)) return;
+
+  const isDemo = request.cookies.get("demo-session")?.value === "true";
+  if (isDemo) return;
 
   if (isApiRoute(request)) {
     const { userId } = await auth();

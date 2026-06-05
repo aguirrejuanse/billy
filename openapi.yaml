@@ -893,3 +893,71 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/demo:
+    post:
+      summary: Start a demo session
+      operationId: startDemoSession
+      description: Sets an httpOnly cookie `demo-session=true` valid for 8 hours. Requires `DEMO_CLERK_ID` env var to be configured on the server.
+      responses:
+        "204":
+          description: Demo session started — no body
+        "503":
+          description: Demo not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Demo not configured
+
+  /auth/demo/logout:
+    post:
+      summary: End the demo session
+      operationId: endDemoSession
+      description: Deletes the `demo-session` cookie server-side.
+      responses:
+        "204":
+          description: Demo session ended — no body
+
+  /auth/me:
+    get:
+      summary: Get current user
+      operationId: getMe
+      description: Returns the authenticated user's name, email, and whether the session is a demo session. Works for both Clerk and demo sessions.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [name, email, isDemo]
+                    properties:
+                      name:
+                        type: string
+                        example: Juan Aguirre
+                      email:
+                        type: string
+                        format: email
+                        example: juan@example.com
+                      isDemo:
+                        type: boolean
+                        example: true
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Unauthorized
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

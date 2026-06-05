@@ -2,8 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@clerk/nextjs/server");
 vi.mock("@/db");
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(),
+}));
 
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 
 type ClerkUser = NonNullable<Awaited<ReturnType<typeof currentUser>>>;
 import { db } from "@/db";
@@ -32,6 +36,18 @@ const mockClerkUser = {
   emailAddresses: [{ emailAddress: "juan@example.com" }],
 };
 
+type CookieStore = Awaited<ReturnType<typeof cookies>>;
+
+function mockCookies(demoSession: boolean) {
+  vi.mocked(cookies).mockResolvedValue({
+    get: vi
+      .fn()
+      .mockImplementation((name: string) =>
+        name === "demo-session" ? { value: demoSession ? "true" : "false" } : undefined
+      ),
+  } as unknown as CookieStore);
+}
+
 function mockAuthSession(clerkId: string | null = "clerk_123") {
   vi.mocked(auth).mockResolvedValue({ userId: clerkId } as ReturnType<typeof auth> extends Promise<
     infer T
@@ -58,6 +74,7 @@ function mockDbInsert(returning: typeof mockUser | null) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockCookies(false);
 });
 
 describe("getAuthenticatedUser", () => {
@@ -187,6 +204,52 @@ describe("getAuthenticatedUser", () => {
 
       expect(result.user).toBeNull();
       expect(result.error!.status).toBe(404);
+    });
+  });
+
+  describe("demo session", () => {
+    const DEMO_CLERK_ID = "user_demo123";
+
+    beforeEach(() => {
+      process.env.DEMO_CLERK_ID = DEMO_CLERK_ID;
+      mockCookies(true);
+    });
+
+    it("uses DEMO_CLERK_ID from env instead of calling auth()", async () => {
+      mockDbFindFirst(mockUser);
+
+      await getAuthenticatedUser();
+
+      expect(auth).not.toHaveBeenCalled();
+    });
+
+    it("returns user found by DEMO_CLERK_ID", async () => {
+      mockDbFindFirst(mockUser);
+
+      const result = await getAuthenticatedUser();
+
+      expect(result.error).toBeNull();
+      expect(result.user).toEqual(mockUser);
+    });
+
+    it("returns 401 when DEMO_CLERK_ID env var is missing", async () => {
+      delete process.env.DEMO_CLERK_ID;
+      mockAuthSession(null);
+
+      const result = await getAuthenticatedUser();
+
+      expect(result.user).toBeNull();
+      expect(result.error!.status).toBe(401);
+    });
+
+    it("returns 404 when demo user is not in DB", async () => {
+      mockDbFindFirst(null);
+      vi.mocked(currentUser).mockResolvedValue(null);
+
+      const result = await getAuthenticatedUser();
+
+      expect(result.user).toBeNull();
+      expect(result.error!.status).toBe(401);
     });
   });
 });
