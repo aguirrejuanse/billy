@@ -61,11 +61,15 @@ export function restartTour() {
   startTour();
 }
 
-export function useDemoTour() {
+interface UseDemoTourProps {
+  isLoading: boolean;
+}
+export function useDemoTour({ isLoading }: UseDemoTourProps) {
   const pathname = usePathname();
 
   useEffect(() => {
     if (pathname !== "/bills") return;
+    if (isLoading) return;
     if (!localStorage.getItem(TOUR_KEY)) startTour();
-  }, [pathname]);
+  }, [pathname, isLoading]);
 }

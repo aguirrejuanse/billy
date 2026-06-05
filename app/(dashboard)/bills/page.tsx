@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useBillsQuery } from "@/hooks/useBillsQuery";
+import { useDemoTour } from "@/hooks/useDemoTour";
 import { BillsTable } from "@/components/bills/BillsTable";
 import { BillsFilters } from "@/components/bills/BillsFilters";
 import { CreateBillSheet } from "@/components/bills/CreateBillSheet";
@@ -22,6 +23,8 @@ export default function BillsPage() {
   } = useBillsQuery({ status, vendorId });
 
   const toggleCreateBill = () => setOpenCreateBill((prev) => !prev);
+
+  useDemoTour({ isLoading: isPlaceholderData });
 
   return (
     <>

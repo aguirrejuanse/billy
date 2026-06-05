@@ -6,7 +6,7 @@ import { UserButton } from "@clerk/nextjs";
 import { FileText, CreditCard, Building2, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDemoSession } from "@/hooks/useDemoSession";
-import { useDemoTour, restartTour } from "@/hooks/useDemoTour";
+import { restartTour } from "@/hooks/useDemoTour";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
@@ -19,7 +19,6 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { isDemo, user, signOut } = useDemoSession();
-  useDemoTour();
 
   return (
     <aside className="w-56 shrink-0 flex flex-col h-screen border-r bg-sidebar">
