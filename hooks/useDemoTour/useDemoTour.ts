@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { driver } from "driver.js";
@@ -43,26 +41,30 @@ const steps = [
   },
 ];
 
-export function DemoTour() {
+function startTour() {
+  const driverObj = driver({
+    showProgress: true,
+    animate: true,
+    overlayOpacity: 0.4,
+    steps,
+    onDestroyStarted: () => {
+      localStorage.setItem(TOUR_KEY, "1");
+      driverObj.destroy();
+    },
+  });
+  driverObj.drive();
+}
+
+export function restartTour() {
+  localStorage.removeItem(TOUR_KEY);
+  startTour();
+}
+
+export function useDemoTour() {
   const pathname = usePathname();
 
   useEffect(() => {
     if (pathname !== "/bills") return;
-    if (localStorage.getItem(TOUR_KEY)) return;
-
-    const driverObj = driver({
-      showProgress: true,
-      animate: true,
-      overlayOpacity: 0.4,
-      steps,
-      onDestroyStarted: () => {
-        localStorage.setItem(TOUR_KEY, "1");
-        driverObj.destroy();
-      },
-    });
-
-    driverObj.drive();
-  }, []);
-
-  return null;
+    if (!localStorage.getItem(TOUR_KEY)) startTour();
+  }, [pathname]);
 }

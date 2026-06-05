@@ -6,6 +6,7 @@ import { UserButton } from "@clerk/nextjs";
 import { FileText, CreditCard, Building2, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDemoSession } from "@/hooks/useDemoSession";
+import { useDemoTour, restartTour } from "@/hooks/useDemoTour";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
@@ -18,6 +19,7 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { isDemo, user, signOut } = useDemoSession();
+  useDemoTour();
 
   return (
     <aside className="w-56 shrink-0 flex flex-col h-screen border-r bg-sidebar">
@@ -46,15 +48,25 @@ export function Sidebar() {
 
       <div className="px-4 py-4 border-t">
         {isDemo ? (
-          <div className="flex items-center gap-2">
-            <div className="size-7 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground shrink-0">
-              {user?.name?.[0]?.toUpperCase() ?? "D"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.name ?? "Demo User"}</p>
-              <Button variant="ghost" size="xs" onClick={signOut}>
-                Exit demo
-              </Button>
+          <div className="space-y-3">
+            {pathname === "/bills" && (
+              <button
+                onClick={restartTour}
+                className="w-full flex items-center justify-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+              >
+                ✦ Restart tour
+              </button>
+            )}
+            <div className="flex items-center gap-2">
+              <div className="size-7 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground shrink-0">
+                {user?.name?.[0]?.toUpperCase() ?? "D"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{user?.name ?? "Demo User"}</p>
+                <Button variant="ghost" size="xs" onClick={signOut}>
+                  Exit demo
+                </Button>
+              </div>
             </div>
           </div>
         ) : (
