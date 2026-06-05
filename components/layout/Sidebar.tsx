@@ -6,6 +6,7 @@ import { UserButton } from "@clerk/nextjs";
 import { FileText, CreditCard, Building2, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDemoSession } from "@/hooks/useDemoSession";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/bills", label: "Bills", icon: FileText },
@@ -50,12 +51,9 @@ export function Sidebar() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user?.name ?? "Demo User"}</p>
-              <button
-                onClick={signOut}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <Button variant="ghost" size="xs" onClick={signOut}>
                 Exit demo
-              </button>
+              </Button>
             </div>
           </div>
         ) : (

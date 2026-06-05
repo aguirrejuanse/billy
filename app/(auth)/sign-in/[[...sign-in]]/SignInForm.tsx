@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useDemoLoginMutation } from "@/hooks/useDemoLoginMutation";
+import { Button } from "@/components/ui/button";
 
 export function SignInForm() {
   const router = useRouter();
@@ -19,13 +20,10 @@ export function SignInForm() {
   if (showClerkSignIn) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <SignIn />
-        <button
-          onClick={() => setShowClerkSignIn(false)}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
+        <Button onClick={() => setShowClerkSignIn(false)} variant="ghost">
           ← Back
-        </button>
+        </Button>
+        <SignIn />
       </div>
     );
   }
@@ -39,11 +37,7 @@ export function SignInForm() {
         </div>
 
         <div className="space-y-3">
-          <button
-            onClick={handleDemoLogin}
-            disabled={isPending}
-            className="w-full flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
+          <Button onClick={handleDemoLogin} disabled={isPending} size="lg" className="w-full">
             {isPending ? (
               <>
                 <span className="size-4 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin" />
@@ -52,7 +46,7 @@ export function SignInForm() {
             ) : (
               "See demo"
             )}
-          </button>
+          </Button>
 
           {error && <p className="text-xs text-destructive text-center">{error.message}</p>}
 
@@ -65,12 +59,14 @@ export function SignInForm() {
             </div>
           </div>
 
-          <button
+          <Button
+            variant="outline"
+            size="lg"
             onClick={() => setShowClerkSignIn(true)}
-            className="w-full rounded-md border border-input bg-background px-4 py-2.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="w-full"
           >
             Login with my account
-          </button>
+          </Button>
         </div>
       </div>
     </div>
