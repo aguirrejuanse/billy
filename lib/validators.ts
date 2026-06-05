@@ -64,7 +64,7 @@ export const updatePaymentStatusSchema = z.object({
 });
 
 export const billActionSchema = z.object({
-  action: z.enum(["submit", "approve", "reject"]),
+  action: z.enum(["submit", "approve", "reject", "archive"]),
 });
 
 export const paymentActionSchema = z.object({

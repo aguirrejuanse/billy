@@ -67,7 +67,11 @@ export function isoDateToLocal(date: string): Date {
 }
 
 export function formatDate(date: Date | string): string {
-  return dateFormatter.format(date instanceof Date ? date : isoDateToLocal(date));
+  if (date instanceof Date) return dateFormatter.format(date);
+  // timestamp strings ("YYYY-MM-DD HH:MM:SS") are valid without modification;
+  // date-only strings ("YYYY-MM-DD") need local-midnight anchoring to avoid UTC off-by-one
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(date) ? isoDateToLocal(date) : new Date(date);
+  return dateFormatter.format(d);
 }
 
 export function formatRelativeDate(date: Date | string): string {

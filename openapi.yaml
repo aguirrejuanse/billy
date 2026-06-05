@@ -524,7 +524,7 @@ paths:
 
   /bills/{id}/patch:
     patch:
-      summary: Submit, approve, or reject a bill
+      summary: Submit, approve, reject, or archive a bill
       operationId: patchBill
       parameters:
         - name: id
@@ -544,11 +544,12 @@ paths:
               properties:
                 action:
                   type: string
-                  enum: [submit, approve, reject]
+                  enum: [submit, approve, reject, archive]
                   description: >
                     `submit` — transitions a draft bill to awaiting_approval.
                     `approve` — transitions an awaiting_approval bill to approved (atomically creates a scheduled payment).
                     `reject` — transitions an awaiting_approval bill to rejected.
+                    `archive` — transitions a rejected bill to archived (removes it from the active queue).
             examples:
               submit:
                 summary: Submit a draft bill for approval
@@ -562,6 +563,10 @@ paths:
                 summary: Reject a bill
                 value:
                   action: reject
+              archive:
+                summary: Archive a rejected bill
+                value:
+                  action: archive
       responses:
         "200":
           description: Bill updated
@@ -587,6 +592,10 @@ paths:
                   summary: Approve/reject on non-awaiting_approval bill
                   value:
                     error: Bill cannot be approved in current status
+                not_rejected:
+                  summary: Archive on non-rejected bill
+                  value:
+                    error: Only rejected bills can be archived
                 malformed_json:
                   summary: Malformed JSON body
                   value:
