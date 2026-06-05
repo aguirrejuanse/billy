@@ -67,7 +67,7 @@ The full spec is in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.1.0).
 | GET    | `/api/bills`            | List bills for the authenticated user. Supports `?status=` and `?vendorId=` filters.                    |
 | POST   | `/api/bills`            | Create a new bill with optional line items.                                                             |
 | GET    | `/api/bills/:id`        | Get a single bill including its vendor, line items, and payment.                                        |
-| PATCH  | `/api/bills/:id`        | Transition a bill's status. Accepts `{ action: "submit" \| "approve" \| "reject" }`.                    |
+| PATCH  | `/api/bills/:id`        | Transition a bill's status. Accepts `{ action: "submit" \| "approve" \| "reject" \| "archive" }`.       |
 | GET    | `/api/vendors`          | List all accessible vendors (global and user-owned), each with their payment methods.                   |
 | POST   | `/api/vendors`          | Create a new private vendor owned by the authenticated user.                                            |
 | PATCH  | `/api/vendors/:id`      | Update a private vendor's name, email, or payment methods.                                              |
@@ -189,8 +189,9 @@ See [`docs/ai-workflow.md`](./docs/ai-workflow.md) for the full breakdown: skill
 | US-10 | As a user, I want a polished UI with consistent colors and visual hierarchy so the app feels production-ready.                   | 🔲 Todo |
 | US-11 | As a reviewer, I want to try the app instantly without signing up so I can evaluate it without friction.                         | ✅ Done |
 | US-13 | As a Finance Manager, I want to mark payments as paid or retry failed payments so I can keep payment statuses accurate.          | ✅ Done |
-| US-14 | As an AP Manager, I want to archive rejected bills so I can keep my active queue clean.                                          | 🔲 Todo |
+| US-14 | As an AP Manager, I want to archive rejected bills so I can keep my active queue clean.                                          | ✅ Done |
 | US-15 | As an AP Manager, I want to import bills from a CSV so I can onboard invoices in bulk.                                           | 🔲 Todo |
 | US-16 | As an AP Manager, I want to export bills and payments to CSV so I can share data with my team or import into other tools.        | 🔲 Todo |
 | US-17 | As a Finance Manager, I want to download the AP Aging Report as CSV so I can analyze it offline.                                 | 🔲 Todo |
 | US-18 | As an AP Manager, I want to select multiple bills and approve, reject, or archive them in bulk so I can process my queue faster. | 🔲 Todo |
+| US-19 | As a reviewer, I want a guided demo tour with tooltips so I can understand key features without exploring on my own.             | 🔲 Todo |

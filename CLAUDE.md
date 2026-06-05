@@ -215,18 +215,33 @@ queryKey: ["bills", filters?.status, filters?.vendorId];
 
 `isNull(table.column)` constructs a SQL expression — it is always truthy in JS. Never use it in an `if` statement or boolean check. Use `value === null` to check fetched data, and `isNull()` only inside Drizzle `where` clauses.
 
-### Union type handlers — always end with `action satisfies never`
+### ACTION_CONFIG pattern for status transitions
 
-When branching over a union type (BillAction, status, etc.), end with `action satisfies never`. TypeScript will error at compile time if a new union member is added without a handler. Works in if/else chains and switch statements.
+When multiple actions share the same structure (status guard → db.update → race check), use an `ACTION_CONFIG` lookup table instead of if-blocks. Adding a new action is a one-liner in the config.
 
 ```ts
-if (action === "submit") { ... return; }
-if (action === "approve") { ... return; }
-if (action === "reject") { ... return; }
-action satisfies never; // compile error if BillAction grows
+const ACTION_CONFIG: Record<MyAction, { requiredStatus: ...; errorMessage: string; patch: ... }> = {
+  submit:  { requiredStatus: "draft",             errorMessage: "...", patch: { status: "awaiting_approval" } },
+  approve: { requiredStatus: "awaiting_approval", errorMessage: "...", patch: { status: "approved" } },
+  // ...
+};
 ```
 
-Each action branch must be independent with its own status guard — no shared guard at the top. This is what enables the exhaustiveness check to work correctly.
+If one action needs a side effect (e.g. `approve` requires a DB transaction + payment insert), keep it as a special branch that still reads `requiredStatus`/`errorMessage` from the config — the data-driven guard and the transactional side effect are separate concerns.
+
+Extract the shared `db.update` block into a typed helper that accepts `db` or a transaction `tx`:
+
+```ts
+type DbExecutor = Pick<typeof db, "update">;
+
+async function updateStatus(executor: DbExecutor, id: string, requiredStatus: ..., patch: ...) {
+  const [updated] = await executor.update(table).set({...patch, updatedAt: new Date()})
+    .where(and(eq(table.id, id), eq(table.status, requiredStatus))).returning({ id: table.id });
+  if (!updated) throw new Error("RACE_LOST");
+}
+```
+
+For simple if-chain handlers (not using ACTION_CONFIG), still end with `action satisfies never` as a compile-time exhaustiveness guard.
 
 ### Demo login bypass — cookie `demo-session`
 
