@@ -228,6 +228,30 @@ action satisfies never; // compile error if BillAction grows
 
 Each action branch must be independent with its own status guard — no shared guard at the top. This is what enables the exhaustiveness check to work correctly.
 
+### Demo login bypass — cookie `demo-session`
+
+`POST /api/auth/demo` sets an httpOnly cookie `demo-session=true`. The bypass is wired in 4 places: `proxy.ts` (skips Clerk auth), `app/(dashboard)/layout.tsx` (skips `auth.protect()`), `app/page.tsx` (redirects to `/bills`), and `lib/auth.ts` (uses `DEMO_CLERK_ID` env var as clerkId). The demo user must exist in the Neon `users` table with that clerkId.
+
+`getAuthenticatedUser()` now exposes `isDemo` in its return value — use it instead of reading `cookies()` a second time in the same request.
+
+`useDemoSession` is the client-side hook for demo session state: exposes `isDemo`, `user` (name + email from `GET /api/auth/me`), `signIn`, and `signOut`. The sign-in page uses `useDemoLoginMutation` directly — not `useDemoSession` — to avoid a 401 fetch before any session exists.
+
+### New Clerk users have no DB record — auto-upserted on first request
+
+`getAuthenticatedUser()` in `lib/auth.ts` auto-creates the user row on first authenticated request via `currentUser()` + INSERT with `onConflictDoNothing`. A refetch fallback handles the race condition where two simultaneous requests both pass the initial `findFirst` miss before either inserts. No webhook infrastructure needed — the upsert is the single chokepoint for all 9 protected API routes.
+
+### `vi.mock` factory — use `vi.hoisted()` for external variables
+
+When a `vi.mock` factory references a variable declared outside it, Vitest hoists the factory to the top of the file — before the variable is initialized. Use `vi.hoisted()` to declare the variable in the same hoisted scope:
+
+```ts
+const { mockFn } = vi.hoisted(() => ({ mockFn: vi.fn() }));
+
+vi.mock("some/module", () => ({
+  someExport: vi.fn().mockResolvedValue({ set: mockFn }),
+}));
+```
+
 ### Test date helpers — use `getFullYear/getMonth/getDate`, not `toISOString()`
 
 When building ISO date strings in tests (`"YYYY-MM-DD"`), never use `new Date().toISOString().split("T")[0]` — it converts to UTC before the split, returning tomorrow's date in UTC-N timezones past a certain hour. Always reset to local midnight first and use local getters:
