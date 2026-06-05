@@ -17,7 +17,7 @@ export function useDemoSession() {
     try {
       await demoSignOutService();
     } finally {
-      queryClient.removeQueries({ queryKey: ["me"] });
+      queryClient.clear();
       router.push("/sign-in");
     }
   }
