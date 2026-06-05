@@ -30,6 +30,7 @@ export function Sidebar() {
           <Link
             key={href}
             href={href}
+            data-tour={href === "/reports" ? "sidebar-reports" : undefined}
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
               pathname.startsWith(href)

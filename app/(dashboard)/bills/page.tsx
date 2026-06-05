@@ -31,6 +31,7 @@ export default function BillsPage() {
           <button
             onClick={toggleCreateBill}
             disabled={isPlaceholderData}
+            data-tour="new-bill"
             className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             New Bill

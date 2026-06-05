@@ -89,7 +89,7 @@ export function BillsTable({ bills, isLoading, error, onRetry }: BillsTableProps
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-tour="bills-table">
       <p className="text-sm text-muted-foreground">{bills.length} bills</p>
       {bills.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground text-sm">No bills found.</div>
