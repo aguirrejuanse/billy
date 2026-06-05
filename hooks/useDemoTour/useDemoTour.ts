@@ -46,6 +46,7 @@ function startTour() {
     showProgress: true,
     animate: true,
     overlayOpacity: 0.4,
+    disableActiveInteraction: true,
     steps,
     onDestroyStarted: () => {
       localStorage.setItem(TOUR_KEY, "1");
