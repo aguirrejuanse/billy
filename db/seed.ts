@@ -1,8 +1,12 @@
 /* eslint-disable no-console */
 import "dotenv/config";
+import ws from "ws";
+import { neonConfig } from "@neondatabase/serverless";
 import { inArray } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
+
+neonConfig.webSocketConstructor = ws;
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -82,16 +86,23 @@ async function seedVendorsAndBills(ownerId: string) {
   console.log("Vendors created");
 
   // Bills: spread across AP aging buckets
+  const isoDate = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const daysAgo = (n: number) => {
     const d = new Date(today);
     d.setDate(d.getDate() - n);
-    return d.toISOString().split("T")[0];
+    return isoDate(d);
   };
   const daysFromNow = (n: number) => {
     const d = new Date(today);
     d.setDate(d.getDate() + n);
-    return d.toISOString().split("T")[0];
+    return isoDate(d);
   };
 
   const billsData: schema.NewBill[] = [
@@ -190,6 +201,42 @@ async function seedVendorsAndBills(ownerId: string) {
       dueDate: daysFromNow(45),
       description: "Design services May",
       paymentType: "wire",
+    },
+    // approved — will get an initiated payment
+    {
+      vendorId: acme.id,
+      ownerId,
+      number: "BILL-009",
+      amount: "3300.00",
+      status: "approved",
+      invoiceDate: daysAgo(20),
+      dueDate: daysFromNow(10),
+      description: "Security audit Q2",
+      paymentType: "wire",
+    },
+    // approved — will get a paid payment
+    {
+      vendorId: globex.id,
+      ownerId,
+      number: "BILL-010",
+      amount: "1800.00",
+      status: "approved",
+      invoiceDate: daysAgo(45),
+      dueDate: daysAgo(15),
+      description: "Data migration services",
+      paymentType: "ach",
+    },
+    // approved — will get a failed payment
+    {
+      vendorId: initech.id,
+      ownerId,
+      number: "BILL-011",
+      amount: "5600.00",
+      status: "approved",
+      invoiceDate: daysAgo(35),
+      dueDate: daysAgo(5),
+      description: "ERP integration phase 1",
+      paymentType: "ach",
     },
   ];
 
@@ -331,6 +378,51 @@ async function seedVendorsAndBills(ownerId: string) {
             accountCode: "7200",
           },
         ];
+      case "BILL-009":
+        return [
+          {
+            billId: bill.id,
+            description: "Penetration testing",
+            amount: "2000.00",
+            accountCode: "7600",
+          },
+          {
+            billId: bill.id,
+            description: "Vulnerability report",
+            amount: "1300.00",
+            accountCode: "7600",
+          },
+        ];
+      case "BILL-010":
+        return [
+          {
+            billId: bill.id,
+            description: "Data extraction & mapping",
+            amount: "1000.00",
+            accountCode: "7200",
+          },
+          {
+            billId: bill.id,
+            description: "Migration execution",
+            amount: "800.00",
+            accountCode: "7200",
+          },
+        ];
+      case "BILL-011":
+        return [
+          {
+            billId: bill.id,
+            description: "ERP setup & configuration",
+            amount: "3600.00",
+            accountCode: "7500",
+          },
+          {
+            billId: bill.id,
+            description: "Staff training (2 days)",
+            amount: "2000.00",
+            accountCode: "7500",
+          },
+        ];
       default:
         return [];
     }
@@ -339,18 +431,54 @@ async function seedVendorsAndBills(ownerId: string) {
   await db.insert(schema.billLineItems).values(lineItemsData);
   console.log(`${lineItemsData.length} line items created`);
 
-  // Payment for the approved bill (BILL-006)
-  const approvedBill = insertedBills.find((b) => b.number === "BILL-006")!;
-  await db.insert(schema.payments).values({
-    billId: approvedBill.id,
-    vendorId: initech.id,
-    amount: approvedBill.amount,
-    status: "scheduled",
-    scheduledDate: daysFromNow(5),
-    paymentMethod: "ach",
-    notes: "Scheduled via approval flow",
-  });
-  console.log("Payment created for BILL-006");
+  const bill006 = insertedBills.find((b) => b.number === "BILL-006")!;
+  const bill009 = insertedBills.find((b) => b.number === "BILL-009")!;
+  const bill010 = insertedBills.find((b) => b.number === "BILL-010")!;
+  const bill011 = insertedBills.find((b) => b.number === "BILL-011")!;
+
+  await db.insert(schema.payments).values([
+    {
+      billId: bill006.id,
+      vendorId: initech.id,
+      amount: bill006.amount,
+      status: "scheduled",
+      scheduledDate: daysFromNow(5),
+      paymentMethod: "ach",
+      notes: "Scheduled via approval flow",
+    },
+    {
+      billId: bill009.id,
+      vendorId: acme.id,
+      amount: bill009.amount,
+      status: "initiated",
+      scheduledDate: daysAgo(2),
+      initiatedAt: new Date(),
+      paymentMethod: "wire",
+      notes: "Released — awaiting confirmation",
+    },
+    {
+      billId: bill010.id,
+      vendorId: globex.id,
+      amount: bill010.amount,
+      status: "paid",
+      scheduledDate: daysAgo(20),
+      initiatedAt: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000),
+      paidAt: new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000),
+      paymentMethod: "ach",
+      notes: "Confirmed by bank",
+    },
+    {
+      billId: bill011.id,
+      vendorId: initech.id,
+      amount: bill011.amount,
+      status: "failed",
+      scheduledDate: daysAgo(10),
+      initiatedAt: new Date(today.getTime() - 8 * 24 * 60 * 60 * 1000),
+      paymentMethod: "ach",
+      notes: "Insufficient funds — retry when resolved",
+    },
+  ]);
+  console.log("4 payments created (scheduled, initiated, paid, failed)");
 
   console.log("Seed complete!");
 }

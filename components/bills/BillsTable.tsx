@@ -25,7 +25,7 @@ const COLUMNS = (
     <TableHead>Bill #</TableHead>
     <TableHead>Description</TableHead>
     <TableHead className="text-right">Amount</TableHead>
-    <TableHead>Status</TableHead>
+    <TableHead className="w-35">Status</TableHead>
     <TableHead>Due Date</TableHead>
     <TableHead />
   </TableRow>

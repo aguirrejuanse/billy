@@ -1,4 +1,5 @@
 import type { Bill, Payment } from "@/db/schema";
+import type { PaymentAction } from "@/lib/validators";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -20,6 +21,17 @@ export const paymentStatusLabels: Record<Payment["status"], string> = {
   initiated: "Initiated",
   paid: "Paid",
   failed: "Failed",
+};
+
+export const paymentActionConfig: Partial<
+  Record<
+    Payment["status"],
+    { action: PaymentAction; label: string; variant: "default" | "outline" }
+  >
+> = {
+  scheduled: { action: "release", label: "Release", variant: "outline" },
+  initiated: { action: "mark_paid", label: "Mark as paid", variant: "default" },
+  failed: { action: "retry", label: "Retry", variant: "outline" },
 };
 
 export const billStatusLabels: Record<Bill["status"], string> = {

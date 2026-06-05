@@ -67,9 +67,14 @@ export const billActionSchema = z.object({
   action: z.enum(["submit", "approve", "reject"]),
 });
 
+export const paymentActionSchema = z.object({
+  action: z.enum(["release", "mark_paid", "retry"]),
+});
+
 export type CreateVendorInput = z.infer<typeof createVendorSchema>;
 export type UpdateVendorInput = z.infer<typeof updateVendorSchema>;
 export type CreateBillInput = z.infer<typeof createBillSchema>;
 export type CreateBillFormInput = z.input<typeof createBillSchema>;
 export type UpdatePaymentStatusInput = z.infer<typeof updatePaymentStatusSchema>;
-export type BillAction = "submit" | "approve" | "reject";
+export type BillAction = z.infer<typeof billActionSchema>["action"];
+export type PaymentAction = z.infer<typeof paymentActionSchema>["action"];

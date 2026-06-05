@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Table,
@@ -10,6 +12,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate, paymentMethodLabels } from "@/lib/formatters";
 import { PaymentStatusBadge } from "./PaymentStatusBadge";
+import { PaymentActionButton } from "./PaymentActionButton";
 import type { PaymentWithRelations } from "@/types";
 
 interface PaymentsTableProps {
@@ -26,7 +29,8 @@ const COLUMNS = (
     <TableHead className="text-right">Amount</TableHead>
     <TableHead>Method</TableHead>
     <TableHead>Scheduled Date</TableHead>
-    <TableHead>Status</TableHead>
+    <TableHead className="w-25">Status</TableHead>
+    <TableHead className="w-30">Actions</TableHead>
     <TableHead />
   </TableRow>
 );
@@ -110,6 +114,9 @@ export function PaymentsTable({ payments, isLoading, error, onRetry }: PaymentsT
                 <TableCell className="text-sm">{formatDate(payment.scheduledDate)}</TableCell>
                 <TableCell>
                   <PaymentStatusBadge status={payment.status} />
+                </TableCell>
+                <TableCell>
+                  <PaymentActionButton paymentId={payment.id} status={payment.status} />
                 </TableCell>
                 <TableCell>
                   <Link

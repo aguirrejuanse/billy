@@ -857,6 +857,103 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /payments/{id}:
+    patch:
+      summary: Transition a payment's status
+      operationId: patchPayment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Payment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [release, mark_paid, retry]
+            examples:
+              release:
+                summary: Release a scheduled payment
+                value:
+                  action: release
+              mark_paid:
+                summary: Mark an initiated payment as paid
+                value:
+                  action: mark_paid
+              retry:
+                summary: Retry a failed payment
+                value:
+                  action: retry
+      responses:
+        "200":
+          description: Payment updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Payment"
+                      - type: object
+                        properties:
+                          bill:
+                            $ref: "#/components/schemas/Bill"
+                          vendor:
+                            $ref: "#/components/schemas/Vendor"
+        "400":
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                not_scheduled:
+                  summary: Payment is not in required status
+                  value:
+                    error: Only scheduled payments can be released
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent status change (race condition)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Payment status changed concurrently
+        "422":
+          description: Invalid action value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /reports/aging:
     get:
       summary: AP Aging Report — open bills bucketed by days past due, grouped by vendor
