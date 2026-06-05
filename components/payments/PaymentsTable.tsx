@@ -29,8 +29,8 @@ const COLUMNS = (
     <TableHead className="text-right">Amount</TableHead>
     <TableHead>Method</TableHead>
     <TableHead>Scheduled Date</TableHead>
-    <TableHead>Status</TableHead>
-    <TableHead>Actions</TableHead>
+    <TableHead className="w-25">Status</TableHead>
+    <TableHead className="w-30">Actions</TableHead>
     <TableHead />
   </TableRow>
 );
