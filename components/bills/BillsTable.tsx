@@ -38,7 +38,11 @@ type BillsTableProps = {
   onRetry?: () => void;
 } & SelectionProps;
 
-export function BillsTableSkeleton({ selectable = false }: { selectable?: boolean }) {
+interface BillsTableSkeletonProps {
+  selectable?: boolean;
+}
+
+export function BillsTableSkeleton({ selectable = false }: BillsTableSkeletonProps) {
   return (
     <div className="space-y-4">
       <Skeleton className="h-4 w-16" />
@@ -125,11 +129,9 @@ export function BillsTable({
   }
 
   function handleHeaderCheck() {
-    if (allSelected) {
-      onClear?.();
-    } else {
-      onSelectAll?.();
-    }
+    if (!selectable) return;
+    if (allSelected) onClear();
+    else onSelectAll();
   }
 
   return (
