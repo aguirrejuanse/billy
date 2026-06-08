@@ -4,6 +4,9 @@ import type { BillWithRelations } from "@/types";
 export function useBillSelection(bills: BillWithRelations[]) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  const billIds = new Set(bills.map((b) => b.id));
+  const validSelectedIds = new Set([...selectedIds].filter((id) => billIds.has(id)));
+
   function toggle(id: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -24,10 +27,18 @@ export function useBillSelection(bills: BillWithRelations[]) {
     setSelectedIds(new Set());
   }
 
-  const allSelected = bills.length > 0 && selectedIds.size === bills.length;
-  const someSelected = selectedIds.size > 0 && !allSelected;
+  const allSelected = bills.length > 0 && validSelectedIds.size === bills.length;
+  const someSelected = validSelectedIds.size > 0 && !allSelected;
 
-  const selectedBills = bills.filter((b) => selectedIds.has(b.id));
+  const selectedBills = bills.filter((b) => validSelectedIds.has(b.id));
 
-  return { selectedIds, selectedBills, toggle, selectAll, clear, allSelected, someSelected };
+  return {
+    selectedIds: validSelectedIds,
+    selectedBills,
+    toggle,
+    selectAll,
+    clear,
+    allSelected,
+    someSelected,
+  };
 }
