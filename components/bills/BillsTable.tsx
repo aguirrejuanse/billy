@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { BillStatusBadge } from "./BillStatusBadge";
 import type { BillWithRelations } from "@/types";
@@ -17,29 +18,37 @@ interface BillsTableProps {
   isLoading?: boolean;
   error?: Error | null;
   onRetry?: () => void;
+  selectedIds?: Set<string>;
+  onToggle?: (id: string) => void;
+  onSelectAll?: () => void;
+  onClear?: () => void;
+  allSelected?: boolean;
+  someSelected?: boolean;
 }
-
-const COLUMNS = (
-  <TableRow>
-    <TableHead>Vendor</TableHead>
-    <TableHead>Bill #</TableHead>
-    <TableHead>Description</TableHead>
-    <TableHead className="text-right">Amount</TableHead>
-    <TableHead className="w-35">Status</TableHead>
-    <TableHead>Due Date</TableHead>
-    <TableHead />
-  </TableRow>
-);
 
 export function BillsTableSkeleton() {
   return (
     <div className="space-y-4">
       <Skeleton className="h-4 w-16" />
       <Table>
-        <TableHeader>{COLUMNS}</TableHeader>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10" />
+            <TableHead>Vendor</TableHead>
+            <TableHead>Bill #</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+            <TableHead className="w-35">Status</TableHead>
+            <TableHead>Due Date</TableHead>
+            <TableHead />
+          </TableRow>
+        </TableHeader>
         <TableBody>
           {[...Array(6)].map((_, i) => (
             <TableRow key={i}>
+              <TableCell>
+                <Skeleton className="h-4 w-4" />
+              </TableCell>
               <TableCell>
                 <Skeleton className="h-4 w-28" />
               </TableCell>
@@ -69,7 +78,18 @@ export function BillsTableSkeleton() {
   );
 }
 
-export function BillsTable({ bills, isLoading, error, onRetry }: BillsTableProps) {
+export function BillsTable({
+  bills,
+  isLoading,
+  error,
+  onRetry,
+  selectedIds,
+  onToggle,
+  onSelectAll,
+  onClear,
+  allSelected,
+  someSelected,
+}: BillsTableProps) {
   if (isLoading) return <BillsTableSkeleton />;
 
   if (error) {
@@ -88,6 +108,16 @@ export function BillsTable({ bills, isLoading, error, onRetry }: BillsTableProps
     );
   }
 
+  const selectable = !!onToggle;
+
+  function handleHeaderCheck() {
+    if (allSelected) {
+      onClear?.();
+    } else {
+      onSelectAll?.();
+    }
+  }
+
   return (
     <div className="space-y-4" data-tour="bills-table">
       <p className="text-sm text-muted-foreground">{bills.length} bills</p>
@@ -95,10 +125,42 @@ export function BillsTable({ bills, isLoading, error, onRetry }: BillsTableProps
         <div className="text-center py-12 text-muted-foreground text-sm">No bills found.</div>
       ) : (
         <Table>
-          <TableHeader>{COLUMNS}</TableHeader>
+          <TableHeader>
+            <TableRow>
+              {selectable && (
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={allSelected}
+                    indeterminate={someSelected}
+                    onCheckedChange={handleHeaderCheck}
+                    aria-label="Select all bills"
+                  />
+                </TableHead>
+              )}
+              <TableHead>Vendor</TableHead>
+              <TableHead>Bill #</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead className="w-35">Status</TableHead>
+              <TableHead>Due Date</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {bills.map((bill) => (
-              <TableRow key={bill.id}>
+              <TableRow
+                key={bill.id}
+                data-state={selectedIds?.has(bill.id) ? "selected" : undefined}
+              >
+                {selectable && (
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds?.has(bill.id) ?? false}
+                      onCheckedChange={() => onToggle(bill.id)}
+                      aria-label={`Select bill ${bill.number}`}
+                    />
+                  </TableCell>
+                )}
                 <TableCell className="font-medium">{bill.vendor?.name ?? "—"}</TableCell>
                 <TableCell className="font-mono text-xs">{bill.number}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">
