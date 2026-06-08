@@ -9,13 +9,16 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/formatters";
 import { AGING_BUCKETS } from "@/lib/aging";
-import type { AgingRow } from "@/types";
+import type { AgingRow, AgingNumericKey } from "@/types";
 
 interface AgingTableProps {
   rows: AgingRow[];
 }
 
-const COLUMNS = [...AGING_BUCKETS, { key: "total" as const, label: "Total", color: "" }];
+const COLUMNS: readonly { key: AgingNumericKey; label: string }[] = [
+  ...AGING_BUCKETS,
+  { key: "total" as const, label: "Total" },
+];
 
 const SKELETON_HEADERS = ["Vendor", ...COLUMNS.map((c) => c.label)];
 

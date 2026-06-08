@@ -1,5 +1,6 @@
 import Papa from "papaparse";
-import type { BillWithRelations } from "@/types";
+import { AGING_BUCKETS } from "@/lib/aging";
+import type { BillWithRelations, AgingRow } from "@/types";
 
 export function billsToCsv(bills: BillWithRelations[]): string {
   const rows = bills.map((bill) => ({
@@ -15,6 +16,15 @@ export function billsToCsv(bills: BillWithRelations[]): string {
   }));
 
   return Papa.unparse(rows);
+}
+
+export function agingToCsv(rows: AgingRow[]): string {
+  const data = rows.map((row) => ({
+    vendor: row.vendorName,
+    ...Object.fromEntries(AGING_BUCKETS.map(({ key, label }) => [label, row[key]])),
+    total: row.total,
+  }));
+  return Papa.unparse(data);
 }
 
 export function downloadCsv(content: string, filename: string): void {

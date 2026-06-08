@@ -11,6 +11,7 @@ import { AgingVendorChart } from "@/components/reports/AgingVendorChart";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ReportHeader } from "@/components/reports/ReportHeader";
+import { agingToCsv, downloadCsv } from "@/lib/export-utils";
 
 const sectionTitle = "text-sm font-semibold text-muted-foreground uppercase tracking-wide";
 
@@ -41,7 +42,12 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <ReportHeader endDate={endDate} onEndDateChange={setEndDate} />
+      <ReportHeader
+        endDate={endDate}
+        onEndDateChange={setEndDate}
+        onExport={() => downloadCsv(agingToCsv(data.rows), `ap-aging-${endDate}.csv`)}
+        exportDisabled={data.rows.length === 0}
+      />
 
       <h2 className={sectionTitle}>AP Snapshot</h2>
       <AgingSummaryCards summary={data.summary} />
