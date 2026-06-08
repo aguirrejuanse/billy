@@ -34,7 +34,7 @@ export function ImportBillsModal({ open, onOpenChange }: ImportBillsModalProps) 
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl" showCloseButton>
         {step === "upload" && (
           <ImportUploadStep

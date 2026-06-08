@@ -107,6 +107,7 @@ export function useImportBills() {
   }
 
   function handleImport() {
+    if (create.isPending) return;
     create.mutate(validRows, {
       onSuccess: (data) => {
         setImportResult(data);
