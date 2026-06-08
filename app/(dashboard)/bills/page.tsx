@@ -40,7 +40,11 @@ export default function BillsPage() {
         <div className="flex items-center justify-between">
           <BillsFilters />
           <div className="flex items-center gap-2">
-            <ExportBillsButton bills={exportBills} disabled={isPlaceholderData} />
+            <ExportBillsButton
+              bills={exportBills}
+              selectionCount={selectedBills.length}
+              disabled={isPlaceholderData}
+            />
             <ImportBillsButton disabled={isPlaceholderData} />
             <button
               onClick={toggleCreateBill}

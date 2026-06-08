@@ -7,11 +7,13 @@ import type { BillWithRelations } from "@/types";
 
 interface ExportBillsButtonProps {
   bills?: BillWithRelations[];
+  selectionCount?: number;
   disabled?: boolean;
 }
 
-export function ExportBillsButton({ bills, disabled }: ExportBillsButtonProps) {
+export function ExportBillsButton({ bills, selectionCount = 0, disabled }: ExportBillsButtonProps) {
   const isEmpty = !bills || bills.length === 0;
+  const label = selectionCount > 0 ? `Export (${selectionCount})` : "Export CSV";
 
   function handleExport() {
     if (isEmpty) return;
@@ -22,7 +24,7 @@ export function ExportBillsButton({ bills, disabled }: ExportBillsButtonProps) {
   return (
     <Button variant="outline" size="sm" disabled={disabled || isEmpty} onClick={handleExport}>
       <DownloadIcon className="h-4 w-4" />
-      Export CSV
+      {label}
     </Button>
   );
 }
