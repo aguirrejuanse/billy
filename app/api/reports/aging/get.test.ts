@@ -71,7 +71,11 @@ function mockDbSelect(rows = [makeRow()], shouldReject = false) {
   (db as unknown as MockDb).select = vi.fn().mockReturnValue(chain);
 }
 
-const makeRequest = () => new NextRequest(new URL("http://localhost/api/reports/aging"));
+const makeRequest = (params?: Record<string, string>) => {
+  const url = new URL("http://localhost/api/reports/aging");
+  if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  return new NextRequest(url);
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -220,6 +224,37 @@ describe("GET /api/reports/aging", () => {
 
       const { data } = await (await GET(makeRequest())).json();
       expect(data.summary.totalOutstanding).toBeGreaterThanOrEqual(data.summary.totalOverdue);
+    });
+  });
+
+  describe("endDate param", () => {
+    beforeEach(() => mockAuth());
+
+    it("returns 400 for an invalid endDate", async () => {
+      const res = await GET(makeRequest({ endDate: "not-a-date" }));
+      expect(res.status).toBe(400);
+
+      const body = await res.json();
+      expect(body.error).toBe("Invalid endDate");
+    });
+
+    it("buckets a bill relative to endDate, not today — bill 15d before endDate lands in days1_30 even though it is 45d before today", async () => {
+      // endDate = 30 days ago; bill due 45 days ago = 15 days before endDate → days1_30
+      const endDate = daysAgo(30);
+      const dueDate = daysAgo(45);
+      mockDbSelect([makeRow({ dueDate })]);
+
+      const { data } = await (await GET(makeRequest({ endDate }))).json();
+      expect(data.rows[0].days1_30).toBe(100);
+      expect(data.rows[0].days31_60).toBe(0);
+    });
+
+    it("returns empty rows when DB returns no bills for the given endDate", async () => {
+      mockDbSelect([]);
+
+      const { data } = await (await GET(makeRequest({ endDate: daysAgo(30) }))).json();
+      expect(data.rows).toEqual([]);
+      expect(data.summary).toEqual({ totalOutstanding: 0, totalOverdue: 0, overdueBillCount: 0 });
     });
   });
 
