@@ -93,6 +93,12 @@ export function useImportBills() {
         }
       });
 
+      if (valid.length === 0 && errors.length === 0) {
+        setParseError("CSV file is empty — please add at least one bill row");
+        clearInput();
+        return;
+      }
+
       setValidRows(valid);
       setRowErrors(errors);
       setStep("preview");
