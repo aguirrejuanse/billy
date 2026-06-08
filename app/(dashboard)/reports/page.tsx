@@ -11,6 +11,8 @@ import { AgingVendorChart } from "@/components/reports/AgingVendorChart";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+const sectionTitle = "text-sm font-semibold text-muted-foreground uppercase tracking-wide";
+
 export default function ReportsPage() {
   const { data, isLoading, isError, refetch } = useAgingReportQuery();
 
@@ -38,7 +40,10 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
+      <h2 className={sectionTitle}>AP Snapshot</h2>
       <AgingSummaryCards summary={data.summary} />
+
+      <h2 className={sectionTitle}>Aging Breakdown</h2>
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -51,6 +56,8 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <h2 className={sectionTitle}>Vendor Detail</h2>
       <AgingTable rows={data.rows} />
     </div>
   );
