@@ -34,7 +34,29 @@ export function AgingDistributionChart({ rows }: AgingDistributionChartProps) {
             outerRadius={110}
             paddingAngle={2}
             dataKey="value"
-          />
+          >
+            <text
+              x="50%"
+              y="46%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize={16}
+              fontWeight={600}
+              fill="currentColor"
+            >
+              {formatCurrency(total)}
+            </text>
+            <text
+              x="50%"
+              y="58%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize={11}
+              fill="#888"
+            >
+              outstanding
+            </text>
+          </Pie>
           <Tooltip
             formatter={(value, name) => {
               const v = Number(value);

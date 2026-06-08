@@ -32,13 +32,17 @@ export function AgingVendorChart({ rows }: AgingVendorChartProps) {
     <div className="space-y-2">
       <p className="text-sm font-medium text-muted-foreground">Outstanding by Vendor</p>
       <ResponsiveContainer width="100%" height={260}>
-        <BarChart data={data} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
+        <BarChart
+          data={data}
+          margin={{ top: 4, right: 8, left: 8, bottom: 4 }}
+          barCategoryGap="40%"
+        >
           <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
           <XAxis dataKey="name" tick={{ fontSize: 12 }} />
           <YAxis
-            tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
+            tickFormatter={(v: number) => (v >= 1000 ? `$${(v / 1000).toFixed(1)}k` : `$${v}`)}
             tick={{ fontSize: 12 }}
-            width={56}
+            width={64}
           />
           <Tooltip
             formatter={(value, name) => [formatCurrency(Number(value)), String(name)]}
