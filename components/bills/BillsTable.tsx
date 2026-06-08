@@ -13,27 +13,39 @@ import { formatCurrency, formatDate } from "@/lib/formatters";
 import { BillStatusBadge } from "./BillStatusBadge";
 import type { BillWithRelations } from "@/types";
 
-interface BillsTableProps {
+type SelectionProps =
+  | {
+      onToggle: (id: string) => void;
+      onSelectAll: () => void;
+      onClear: () => void;
+      selectedIds: Set<string>;
+      allSelected: boolean;
+      someSelected: boolean;
+    }
+  | {
+      onToggle?: never;
+      onSelectAll?: never;
+      onClear?: never;
+      selectedIds?: never;
+      allSelected?: never;
+      someSelected?: never;
+    };
+
+type BillsTableProps = {
   bills: BillWithRelations[];
   isLoading?: boolean;
   error?: Error | null;
   onRetry?: () => void;
-  selectedIds?: Set<string>;
-  onToggle?: (id: string) => void;
-  onSelectAll?: () => void;
-  onClear?: () => void;
-  allSelected?: boolean;
-  someSelected?: boolean;
-}
+} & SelectionProps;
 
-export function BillsTableSkeleton() {
+export function BillsTableSkeleton({ selectable = false }: { selectable?: boolean }) {
   return (
     <div className="space-y-4">
       <Skeleton className="h-4 w-16" />
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-10" />
+            {selectable && <TableHead className="w-10" />}
             <TableHead>Vendor</TableHead>
             <TableHead>Bill #</TableHead>
             <TableHead>Description</TableHead>
@@ -46,9 +58,11 @@ export function BillsTableSkeleton() {
         <TableBody>
           {[...Array(6)].map((_, i) => (
             <TableRow key={i}>
-              <TableCell>
-                <Skeleton className="h-4 w-4" />
-              </TableCell>
+              {selectable && (
+                <TableCell>
+                  <Skeleton className="h-4 w-4" />
+                </TableCell>
+              )}
               <TableCell>
                 <Skeleton className="h-4 w-28" />
               </TableCell>
@@ -90,7 +104,9 @@ export function BillsTable({
   allSelected,
   someSelected,
 }: BillsTableProps) {
-  if (isLoading) return <BillsTableSkeleton />;
+  const selectable = !!onToggle;
+
+  if (isLoading) return <BillsTableSkeleton selectable={selectable} />;
 
   if (error) {
     return (
@@ -107,8 +123,6 @@ export function BillsTable({
       </div>
     );
   }
-
-  const selectable = !!onToggle;
 
   function handleHeaderCheck() {
     if (allSelected) {
