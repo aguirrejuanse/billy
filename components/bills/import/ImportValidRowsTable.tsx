@@ -29,8 +29,8 @@ export function ImportValidRowsTable({ rows }: ImportValidRowsTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.map((row, i) => (
-            <TableRow key={i}>
+          {rows.map((row) => (
+            <TableRow key={`${row.vendor_name}-${row.number}`}>
               <TableCell className="max-w-35 truncate">{row.vendor_name}</TableCell>
               <TableCell>{row.number}</TableCell>
               <TableCell className="text-right tabular-nums">
