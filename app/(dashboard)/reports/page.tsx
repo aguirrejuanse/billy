@@ -6,6 +6,9 @@ import {
   AgingSummaryCardsSkeleton,
 } from "@/components/reports/AgingSummaryCards";
 import { AgingTable, AgingTableSkeleton } from "@/components/reports/AgingTable";
+import { AgingDistributionChart } from "@/components/reports/AgingDistributionChart";
+import { AgingVendorChart } from "@/components/reports/AgingVendorChart";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function ReportsPage() {
@@ -36,6 +39,18 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <AgingSummaryCards summary={data.summary} />
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <AgingDistributionChart rows={data.rows} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <AgingVendorChart rows={data.rows} />
+          </CardContent>
+        </Card>
+      </div>
       <AgingTable rows={data.rows} />
     </div>
   );

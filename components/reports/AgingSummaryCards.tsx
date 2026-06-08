@@ -16,6 +16,11 @@ export function AgingSummaryCards({ summary }: AgingSummaryCardsProps) {
         label="Total Overdue"
         value={formatCurrency(summary.totalOverdue)}
         valueClassName="text-destructive"
+        description={
+          summary.totalOutstanding > 0
+            ? `${((summary.totalOverdue / summary.totalOutstanding) * 100).toFixed(1)}% of total outstanding`
+            : undefined
+        }
       />
       <StatCard
         label="Bills Overdue"
