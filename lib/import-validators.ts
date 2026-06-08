@@ -7,10 +7,16 @@ export const importBillRowSchema = z
   .object({
     vendor_name: z.string().min(1, "vendor_name is required").max(255),
     number: z.string().min(1, "number is required").max(100),
-    amount: z.coerce
-      .number()
-      .positive("amount must be a positive number")
-      .max(99_999_999.99, "amount exceeds maximum"),
+    amount: z.preprocess(
+      (v) => {
+        const n = Number(v);
+        return isNaN(n) ? v : n;
+      },
+      z
+        .number({ error: "amount must be a number" })
+        .positive("amount must be a positive number")
+        .max(99_999_999.99, "amount exceeds maximum")
+    ),
     currency: z.preprocess(
       (v) => (v === "" ? "USD" : v),
       z.enum(currencyEnum.enumValues, { error: "currency must be USD, EUR, or ARS" })
