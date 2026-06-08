@@ -74,6 +74,19 @@ export function formatDate(date: Date | string): string {
   return dateFormatter.format(d);
 }
 
+export function todayLocalISO(): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function truncateLabel(label: string, maxLength: number): string {
+  return label.length > maxLength ? `${label.slice(0, maxLength)}…` : label;
+}
+
 export function formatRelativeDate(date: Date | string): string {
   const d = date instanceof Date ? date : isoDateToLocal(date);
   const diffDays = Math.floor((d.getTime() - Date.now()) / MS_PER_DAY);

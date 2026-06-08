@@ -8,20 +8,17 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/formatters";
+import { AGING_BUCKETS } from "@/lib/aging";
 import type { AgingRow, AgingNumericKey } from "@/types";
 
 interface AgingTableProps {
   rows: AgingRow[];
 }
 
-const COLUMNS = [
-  { key: "current", label: "Current" },
-  { key: "days1_30", label: "1–30 days" },
-  { key: "days31_60", label: "31–60 days" },
-  { key: "days61_90", label: "61–90 days" },
-  { key: "days90plus", label: "90+ days" },
-  { key: "total", label: "Total" },
-] as const satisfies readonly { key: AgingNumericKey; label: string }[];
+const COLUMNS: readonly { key: AgingNumericKey; label: string }[] = [
+  ...AGING_BUCKETS,
+  { key: "total" as const, label: "Total" },
+];
 
 const SKELETON_HEADERS = ["Vendor", ...COLUMNS.map((c) => c.label)];
 

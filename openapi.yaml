@@ -1144,6 +1144,14 @@ paths:
     get:
       summary: AP Aging Report — open bills bucketed by days past due, grouped by vendor
       operationId: getAgingReport
+      parameters:
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Cut-off date (YYYY-MM-DD). Only bills with dueDate ≤ endDate are included and aging is calculated relative to this date. Defaults to today.
       responses:
         "200":
           description: OK
