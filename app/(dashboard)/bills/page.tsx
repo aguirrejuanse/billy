@@ -8,6 +8,7 @@ import { BillsTable } from "@/components/bills/BillsTable";
 import { BillsFilters } from "@/components/bills/BillsFilters";
 import { CreateBillSheet } from "@/components/bills/CreateBillSheet";
 import { ImportBillsButton } from "@/components/bills/ImportBillsButton";
+import { ExportBillsButton } from "@/components/bills/ExportBillsButton";
 
 export default function BillsPage() {
   const [openCreateBill, setOpenCreateBill] = useState(false);
@@ -33,6 +34,7 @@ export default function BillsPage() {
         <div className="flex items-center justify-between">
           <BillsFilters />
           <div className="flex items-center gap-2">
+            <ExportBillsButton bills={bills} disabled={isPlaceholderData} />
             <ImportBillsButton disabled={isPlaceholderData} />
             <button
               onClick={toggleCreateBill}
