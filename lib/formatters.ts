@@ -74,6 +74,10 @@ export function formatDate(date: Date | string): string {
   return dateFormatter.format(d);
 }
 
+export function truncateLabel(label: string, maxLength: number): string {
+  return label.length > maxLength ? `${label.slice(0, maxLength)}…` : label;
+}
+
 export function formatRelativeDate(date: Date | string): string {
   const d = date instanceof Date ? date : isoDateToLocal(date);
   const diffDays = Math.floor((d.getTime() - Date.now()) / MS_PER_DAY);

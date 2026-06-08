@@ -1,33 +1,23 @@
 "use client";
 
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { formatCurrency } from "@/lib/formatters";
+import { AGING_BUCKETS } from "@/lib/aging";
+import { ChartEmptyState } from "@/components/reports/info/ChartEmptyState";
 import type { AgingRow } from "@/types";
 
 interface AgingDistributionChartProps {
   rows: AgingRow[];
 }
 
-const BUCKETS = [
-  { key: "current", label: "Current", color: "#22c55e" },
-  { key: "days1_30", label: "1–30 days", color: "#eab308" },
-  { key: "days31_60", label: "31–60 days", color: "#f97316" },
-  { key: "days61_90", label: "61–90 days", color: "#ef4444" },
-  { key: "days90plus", label: "90+ days", color: "#991b1b" },
-] as const;
-
 export function AgingDistributionChart({ rows }: AgingDistributionChartProps) {
-  const data = BUCKETS.map(({ key, label, color }) => ({
+  const data = AGING_BUCKETS.map(({ key, label, color }) => ({
     name: label,
     value: rows.reduce((sum, row) => sum + row[key], 0),
-    color,
+    fill: color,
   })).filter((d) => d.value > 0);
 
-  if (data.length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground text-sm">No data to display.</div>
-    );
-  }
+  if (data.length === 0) return <ChartEmptyState />;
 
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
@@ -44,11 +34,7 @@ export function AgingDistributionChart({ rows }: AgingDistributionChartProps) {
             outerRadius={110}
             paddingAngle={2}
             dataKey="value"
-          >
-            {data.map((entry) => (
-              <Cell key={entry.name} fill={entry.color} />
-            ))}
-          </Pie>
+          />
           <Tooltip
             formatter={(value, name) => {
               const v = Number(value);
