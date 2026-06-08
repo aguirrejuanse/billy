@@ -11,9 +11,12 @@ export const importBillRowSchema = z
       .number()
       .positive("amount must be a positive number")
       .max(99_999_999.99, "amount exceeds maximum"),
-    currency: z.preprocess((v) => (v === "" ? "USD" : v), z.enum(currencyEnum.enumValues)),
-    invoice_date: z.iso.date(),
-    due_date: z.iso.date(),
+    currency: z.preprocess(
+      (v) => (v === "" ? "USD" : v),
+      z.enum(currencyEnum.enumValues, { error: "currency must be USD, EUR, or ARS" })
+    ),
+    invoice_date: z.iso.date({ error: "invoice_date must be a valid date (YYYY-MM-DD)" }),
+    due_date: z.iso.date({ error: "due_date must be a valid date (YYYY-MM-DD)" }),
     description: z.preprocess((v) => (v === "" ? undefined : v), z.string().max(5000).optional()),
     payment_type: z.preprocess(
       (v) => (typeof v === "string" ? v.toLowerCase() : v),
