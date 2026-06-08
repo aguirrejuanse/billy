@@ -7,6 +7,7 @@ import { useDemoTour } from "@/hooks/useDemoTour";
 import { BillsTable } from "@/components/bills/BillsTable";
 import { BillsFilters } from "@/components/bills/BillsFilters";
 import { CreateBillSheet } from "@/components/bills/CreateBillSheet";
+import { ImportBillsButton } from "@/components/bills/ImportBillsButton";
 
 export default function BillsPage() {
   const [openCreateBill, setOpenCreateBill] = useState(false);
@@ -31,14 +32,17 @@ export default function BillsPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <BillsFilters />
-          <button
-            onClick={toggleCreateBill}
-            disabled={isPlaceholderData}
-            data-tour="new-bill"
-            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            New Bill
-          </button>
+          <div className="flex items-center gap-2">
+            <ImportBillsButton disabled={isPlaceholderData} />
+            <button
+              onClick={toggleCreateBill}
+              disabled={isPlaceholderData}
+              data-tour="new-bill"
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              New Bill
+            </button>
+          </div>
         </div>
         <BillsTable bills={bills} isLoading={isPlaceholderData} error={error} onRetry={refetch} />
       </div>
