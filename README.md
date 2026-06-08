@@ -62,21 +62,22 @@ pnpm dev       # http://localhost:3000
 
 The full spec is in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.1.0).
 
-| Method | Path                    | Description                                                                                             |
-| ------ | ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/bills`            | List bills for the authenticated user. Supports `?status=` and `?vendorId=` filters.                    |
-| POST   | `/api/bills`            | Create a new bill with optional line items.                                                             |
-| GET    | `/api/bills/:id`        | Get a single bill including its vendor, line items, and payment.                                        |
-| PATCH  | `/api/bills/:id`        | Transition a bill's status. Accepts `{ action: "submit" \| "approve" \| "reject" \| "archive" }`.       |
-| GET    | `/api/vendors`          | List all accessible vendors (global and user-owned), each with their payment methods.                   |
-| POST   | `/api/vendors`          | Create a new private vendor owned by the authenticated user.                                            |
-| PATCH  | `/api/vendors/:id`      | Update a private vendor's name, email, or payment methods.                                              |
-| GET    | `/api/payments`         | List payments for the authenticated user. Supports `?status=`, `?paymentMethod=`, `?vendorId=` filters. |
-| PATCH  | `/api/payments/:id`     | Transition a payment's status. Accepts `{ action: "release" \| "mark_paid" \| "retry" }`.               |
-| GET    | `/api/reports/aging`    | AP Aging Report — open bills bucketed by days past due, grouped by vendor.                              |
-| POST   | `/api/auth/demo`        | Start a demo session — sets an httpOnly cookie valid for 8 hours. Requires `DEMO_CLERK_ID` env var.     |
-| POST   | `/api/auth/demo/logout` | End the demo session — deletes the demo cookie.                                                         |
-| GET    | `/api/auth/me`          | Return current user's name, email, and whether it's a demo session.                                     |
+| Method | Path                       | Description                                                                                                                       |
+| ------ | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/bills`               | List bills for the authenticated user. Supports `?status=` and `?vendorId=` filters.                                              |
+| POST   | `/api/bills`               | Create a new bill with optional line items.                                                                                       |
+| GET    | `/api/bills/:id`           | Get a single bill including its vendor, line items, and payment.                                                                  |
+| PATCH  | `/api/bills/:id`           | Transition a bill's status. Accepts `{ action: "submit" \| "approve" \| "reject" \| "archive" }`.                                 |
+| GET    | `/api/vendors`             | List all accessible vendors (global and user-owned), each with their payment methods.                                             |
+| POST   | `/api/vendors`             | Create a new private vendor owned by the authenticated user.                                                                      |
+| PATCH  | `/api/vendors/:id`         | Update a private vendor's name, email, or payment methods.                                                                        |
+| GET    | `/api/payments`            | List payments for the authenticated user. Supports `?status=`, `?paymentMethod=`, `?vendorId=` filters.                           |
+| PATCH  | `/api/payments/:id`        | Transition a payment's status. Accepts `{ action: "release" \| "mark_paid" \| "retry" }`.                                         |
+| GET    | `/api/reports/aging`       | AP Aging Report — open bills bucketed by days past due, grouped by vendor.                                                        |
+| POST   | `/api/bills/import/create` | Bulk-create bills from a pre-validated CSV payload. Returns `{ imported, errors }` with partial success. Max 50 rows per request. |
+| POST   | `/api/auth/demo`           | Start a demo session — sets an httpOnly cookie valid for 8 hours. Requires `DEMO_CLERK_ID` env var.                               |
+| POST   | `/api/auth/demo/logout`    | End the demo session — deletes the demo cookie.                                                                                   |
+| GET    | `/api/auth/me`             | Return current user's name, email, and whether it's a demo session.                                                               |
 
 All endpoints except `/api/auth/demo` and `/api/auth/demo/logout` require a valid Clerk or demo session. Responses follow `{ data }` on success and `{ error }` on failure.
 
@@ -189,7 +190,7 @@ See [`docs/ai-workflow.md`](./docs/ai-workflow.md) for the full breakdown: skill
 | US-11 | As a reviewer, I want to try the app instantly without signing up so I can evaluate it without friction.                         | ✅ Done |
 | US-13 | As a Finance Manager, I want to mark payments as paid or retry failed payments so I can keep payment statuses accurate.          | ✅ Done |
 | US-14 | As an AP Manager, I want to archive rejected bills so I can keep my active queue clean.                                          | ✅ Done |
-| US-15 | As an AP Manager, I want to import bills from a CSV so I can onboard invoices in bulk.                                           | 🔲 Todo |
+| US-15 | As an AP Manager, I want to import bills from a CSV so I can onboard invoices in bulk.                                           | ✅ Done |
 | US-16 | As an AP Manager, I want to export bills and payments to CSV so I can share data with my team or import into other tools.        | 🔲 Todo |
 | US-17 | As a Finance Manager, I want to download the AP Aging Report as CSV so I can analyze it offline.                                 | 🔲 Todo |
 | US-18 | As an AP Manager, I want to select multiple bills and approve, reject, or archive them in bulk so I can process my queue faster. | 🔲 Todo |

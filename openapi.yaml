@@ -307,6 +307,72 @@ components:
           type: integer
           description: Number of individual bills past their due date
 
+    ImportBillRow:
+      type: object
+      required:
+        - vendor_name
+        - number
+        - amount
+        - invoice_date
+        - due_date
+        - payment_type
+      properties:
+        vendor_name:
+          type: string
+          maxLength: 255
+          example: Acme Corp
+        number:
+          type: string
+          maxLength: 100
+          example: INV-001
+        amount:
+          type: number
+          minimum: 0.01
+          maximum: 99999999.99
+          example: 1500.00
+        currency:
+          type: string
+          enum: [USD, EUR, ARS]
+          default: USD
+        invoice_date:
+          type: string
+          format: date
+          example: "2026-05-21"
+        due_date:
+          type: string
+          format: date
+          description: Must be on or after invoice_date
+          example: "2026-05-28"
+        description:
+          type: string
+          maxLength: 5000
+          example: Office supplies Q2
+        payment_type:
+          type: string
+          enum: [ach, wire, check, card]
+          example: ach
+
+    ImportResult:
+      type: object
+      properties:
+        imported:
+          type: integer
+          description: Number of bills successfully created
+          example: 4
+        errors:
+          type: array
+          description: Per-row errors for rows that failed
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+                description: CSV row number (header = 1, first data row = 2)
+                example: 3
+              error:
+                type: string
+                example: 'Bill number "INV-001" already exists'
+
     ErrorResponse:
       type: object
       properties:
@@ -632,6 +698,117 @@ paths:
                 error: Invalid enum value
         "500":
           description: Internal server error
+
+  /bills/import/create:
+    post:
+      summary: Bulk-create bills from a pre-validated CSV payload
+      operationId: importBills
+      description: >
+        Accepts up to 50 pre-validated rows. Each row is processed independently —
+        if one fails, the rest continue. Vendors are matched case-insensitively and
+        auto-created if not found. Global vendors are read-only; private vendors get
+        new payment methods added if missing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rows]
+              properties:
+                rows:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items:
+                    $ref: "#/components/schemas/ImportBillRow"
+            examples:
+              valid:
+                summary: Two valid rows
+                value:
+                  rows:
+                    - vendor_name: Acme Corp
+                      number: INV-001
+                      amount: 1500.00
+                      currency: USD
+                      invoice_date: "2026-05-21"
+                      due_date: "2026-05-28"
+                      payment_type: ach
+                    - vendor_name: Globex
+                      number: INV-002
+                      amount: 800.00
+                      invoice_date: "2026-05-15"
+                      due_date: "2026-06-15"
+                      payment_type: wire
+              partial_failure:
+                summary: Second row has a duplicate bill number → partial success
+                value:
+                  rows:
+                    - vendor_name: Acme Corp
+                      number: INV-NEW
+                      amount: 500.00
+                      invoice_date: "2026-05-21"
+                      due_date: "2026-05-28"
+                      payment_type: ach
+                    - vendor_name: Globex
+                      number: INV-001
+                      amount: 200.00
+                      invoice_date: "2026-05-01"
+                      due_date: "2026-05-15"
+                      payment_type: wire
+      responses:
+        "201":
+          description: Import complete (partial success is still 201)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ImportResult"
+              examples:
+                all_success:
+                  summary: All rows imported
+                  value:
+                    data:
+                      imported: 2
+                      errors: []
+                partial:
+                  summary: One row failed
+                  value:
+                    data:
+                      imported: 1
+                      errors:
+                        - row: 3
+                          error: 'Bill number "INV-001" already exists'
+        "400":
+          description: Malformed JSON body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Invalid JSON body
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation error (rows array empty, exceeds 50, or schema mismatch)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Too many rows — max 50 per import
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /vendors:
     get:
