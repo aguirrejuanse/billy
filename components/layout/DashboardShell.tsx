@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -11,6 +11,17 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const close = () => setSidebarOpen(false);
+    const open = () => setSidebarOpen(true);
+    window.addEventListener("billy:close-sidebar", close);
+    window.addEventListener("billy:open-sidebar", open);
+    return () => {
+      window.removeEventListener("billy:close-sidebar", close);
+      window.removeEventListener("billy:open-sidebar", open);
+    };
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -24,6 +35,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         <SheetContent
           side="left"
           className="p-0 overflow-hidden"
+          data-sidebar-sheet
           style={{ width: "14rem", maxWidth: "14rem" }}
         >
           <Sidebar onNavClick={() => setSidebarOpen(false)} />

@@ -35,7 +35,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
         </span>
       </div>
 
-      <nav className="flex-1 px-2 py-4 space-y-0.5">
+      <nav data-tour="sidebar-nav" className="flex-1 px-2 py-4 space-y-0.5">
         {navItems.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
