@@ -15,6 +15,7 @@ import { agingToCsv, downloadCsv } from "@/lib/export-utils";
 import { useDemoSession } from "@/hooks/useDemoSession";
 
 const sectionTitle = "text-sm font-semibold text-muted-foreground uppercase tracking-wide";
+const pageStyles = "space-y-6 h-full overflow-y-auto scrollbar-hide pb-6 px-0.5 pt-1";
 
 export default function ReportsPage() {
   const { data, isLoading, isError, refetch, endDate, setEndDate } = useAgingReportQuery();
@@ -22,7 +23,7 @@ export default function ReportsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 h-full overflow-y-auto scrollbar-hide pb-6 px-0.5">
+      <div className={pageStyles}>
         <AgingSummaryCardsSkeleton />
         <AgingTableSkeleton />
       </div>
@@ -31,11 +32,13 @@ export default function ReportsPage() {
 
   if (isError) {
     return (
-      <div className="flex flex-col items-start gap-2">
-        <p className="text-sm text-destructive">Failed to load aging report.</p>
-        <Button variant="link" className="p-0 h-auto" onClick={() => refetch()}>
-          Try again
-        </Button>
+      <div className={pageStyles}>
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-sm text-destructive">Failed to load aging report.</p>
+          <Button variant="link" className="p-0 h-auto" onClick={() => refetch()}>
+            Try again
+          </Button>
+        </div>
       </div>
     );
   }
@@ -43,7 +46,7 @@ export default function ReportsPage() {
   if (!data) return null;
 
   return (
-    <div className="space-y-6 h-full overflow-y-auto scrollbar-hide pb-6 px-0.5 pt-1">
+    <div className={pageStyles}>
       <ReportHeader
         endDate={endDate}
         onEndDateChange={setEndDate}
