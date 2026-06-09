@@ -8,6 +8,7 @@ import { currencyEnum, paymentMethodEnum } from "@/db/schema";
 import { useVendorsQuery } from "@/hooks/useVendorsQuery";
 import { useCreateBillMutation } from "@/hooks/useCreateBillMutation";
 import { FormInput, FormTextarea, FormSelect, FormDateInput } from "@/components/ui/form-fields";
+import { Button } from "@/components/ui/button";
 import { LineItemsField } from "./LineItemsField";
 import { paymentMethodLabels } from "@/lib/formatters";
 import Link from "next/link";
@@ -141,13 +142,9 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
 
         <div className="flex items-center gap-3 justify-between border-t pt-4">
           <p className="text-xs text-destructive flex-1 min-w-0 truncate">{errorMessage}</p>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
-          >
+          <Button type="submit" disabled={isPending} className="shrink-0">
             {isPending ? "Creating…" : "Create Bill"}
-          </button>
+          </Button>
         </div>
       </form>
     </FormProvider>

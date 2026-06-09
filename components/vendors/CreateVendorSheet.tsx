@@ -3,6 +3,7 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { FormInput, FormCheckboxGroup } from "@/components/ui/form-fields";
 import { createVendorSchema, type CreateVendorInput } from "@/lib/validators";
 import { paymentMethodEnum } from "@/db/schema";
@@ -63,13 +64,9 @@ export function CreateVendorSheet({ open, onOpenChange }: CreateVendorSheetProps
 
             <div className="flex items-center gap-3 justify-between border-t pt-4">
               <p className="text-xs text-destructive flex-1 min-w-0 truncate">{errorMessage}</p>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
-              >
+              <Button type="submit" disabled={isPending} className="shrink-0">
                 {isPending ? "Creating…" : "Create Vendor"}
-              </button>
+              </Button>
             </div>
           </form>
         </FormProvider>
