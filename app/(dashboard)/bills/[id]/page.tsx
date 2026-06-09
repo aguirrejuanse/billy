@@ -1,22 +1,8 @@
-"use client";
+import type { Metadata } from "next";
+import BillDetailPageClient from "./BillDetailPageClient";
 
-import { use } from "react";
-import { useBillQuery } from "@/hooks/useBillQuery";
-import { BillDetail, BillDetailSkeleton } from "@/components/bills/BillDetail";
-import { BillError } from "@/components/bills/info/BillError";
-import { BillDetailParams } from "@/types";
+export const metadata: Metadata = { title: "Bill detail" };
 
-interface BillDetailPageProps {
-  params: Promise<BillDetailParams>;
-}
-
-export default function BillDetailPage({ params }: BillDetailPageProps) {
-  const { id } = use(params);
-  const { data: bill, isLoading, isFetching, error } = useBillQuery(id);
-
-  if (isLoading) return <BillDetailSkeleton />;
-
-  if (error || !bill) return <BillError />;
-
-  return <BillDetail bill={bill} isFetching={isFetching} />;
+export default function BillDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  return <BillDetailPageClient params={params} />;
 }

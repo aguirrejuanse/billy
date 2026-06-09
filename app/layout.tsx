@@ -7,8 +7,13 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Billy",
-  description: "Accounts payable manager",
+  title: {
+    default: "Billy — AP Manager",
+    template: "%s | Billy",
+  },
+  description:
+    "Billy is an accounts payable manager that helps AP teams track vendor bills through their full lifecycle: creation, approval, and payment scheduling.",
+  keywords: ["accounts payable", "AP manager", "vendor bills", "invoice management"],
 };
 
 export default function RootLayout({
