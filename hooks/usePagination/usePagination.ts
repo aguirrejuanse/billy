@@ -10,5 +10,5 @@ export function usePagination<T>(items: T[], pageSize = 15) {
     setPage(Math.max(1, Math.min(next, totalPages)));
   }
 
-  return { page, setPage: goToPage, totalPages, paginated, total: items.length };
+  return { page: safePage, setPage: goToPage, totalPages, paginated };
 }

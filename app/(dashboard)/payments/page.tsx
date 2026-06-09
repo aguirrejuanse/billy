@@ -25,7 +25,7 @@ export default function PaymentsPage() {
     vendorId,
   });
 
-  const { page, setPage, totalPages, paginated, total } = usePagination<(typeof payments)[number]>(
+  const { page, setPage, totalPages, paginated } = usePagination<(typeof payments)[number]>(
     payments,
     15
   );
@@ -42,7 +42,7 @@ export default function PaymentsPage() {
       <PaginationBar
         page={page}
         totalPages={totalPages}
-        total={total}
+        total={payments.length}
         pageSize={15}
         onPageChange={setPage}
       />

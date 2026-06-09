@@ -16,10 +16,7 @@ export default function VendorsPage() {
 
   const { data: vendors = [], isLoading, error, refetch } = useVendorsQuery();
 
-  const { page, setPage, totalPages, paginated, total } = usePagination<VendorWithMethods>(
-    vendors,
-    15
-  );
+  const { page, setPage, totalPages, paginated } = usePagination<VendorWithMethods>(vendors, 15);
 
   const toggleCreateVendor = () => setOpenCreateVendor((prev) => !prev);
   const closeEditVendor = () => setEditingVendor(null);
@@ -41,7 +38,7 @@ export default function VendorsPage() {
         <PaginationBar
           page={page}
           totalPages={totalPages}
-          total={total}
+          total={vendors.length}
           pageSize={15}
           onPageChange={setPage}
         />

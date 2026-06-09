@@ -31,10 +31,7 @@ export default function BillsPage() {
   const { selectedIds, selectedBills, toggle, selectAll, clear, allSelected, someSelected } =
     useBillSelection(bills);
 
-  const { page, setPage, totalPages, paginated, total } = usePagination<(typeof bills)[number]>(
-    bills,
-    15
-  );
+  const { page, setPage, totalPages, paginated } = usePagination<(typeof bills)[number]>(bills, 15);
 
   const toggleCreateBill = () => setOpenCreateBill((prev) => !prev);
 
@@ -74,7 +71,7 @@ export default function BillsPage() {
         <PaginationBar
           page={page}
           totalPages={totalPages}
-          total={total}
+          total={bills.length}
           pageSize={15}
           onPageChange={setPage}
         />
