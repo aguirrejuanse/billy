@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { useVendorsQuery } from "@/hooks/useVendorsQuery";
+import { usePagination } from "@/hooks/usePagination";
 import { VendorsTable } from "@/components/vendors/VendorsTable";
 import { CreateVendorSheet } from "@/components/vendors/CreateVendorSheet";
 import { EditVendorSheet } from "@/components/vendors/EditVendorSheet";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { Button } from "@/components/ui/button";
 import type { VendorWithMethods } from "@/types";
 
 export default function VendorsPage() {
@@ -13,27 +16,33 @@ export default function VendorsPage() {
 
   const { data: vendors = [], isLoading, error, refetch } = useVendorsQuery();
 
+  const { page, setPage, totalPages, paginated } = usePagination<VendorWithMethods>(vendors, 15);
+
   const toggleCreateVendor = () => setOpenCreateVendor((prev) => !prev);
   const closeEditVendor = () => setEditingVendor(null);
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="flex flex-col h-full gap-4">
         <div className="flex items-center justify-between">
           <div />
-          <button
-            onClick={toggleCreateVendor}
-            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer"
-          >
-            New Vendor
-          </button>
+          <Button onClick={toggleCreateVendor}>New Vendor</Button>
         </div>
-        <VendorsTable
-          vendors={vendors}
-          isLoading={isLoading}
-          error={error}
-          onRetry={refetch}
-          onEdit={setEditingVendor}
+        <div className="flex-1 min-h-0">
+          <VendorsTable
+            vendors={paginated}
+            isLoading={isLoading}
+            error={error}
+            onRetry={refetch}
+            onEdit={setEditingVendor}
+          />
+        </div>
+        <PaginationBar
+          page={page}
+          totalPages={totalPages}
+          total={vendors.length}
+          pageSize={15}
+          onPageChange={setPage}
         />
       </div>
       <CreateVendorSheet open={openCreateVendor} onOpenChange={toggleCreateVendor} />

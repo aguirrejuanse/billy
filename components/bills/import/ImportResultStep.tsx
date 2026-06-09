@@ -18,7 +18,7 @@ export function ImportResultStep({ result, onClose }: ImportResultStepProps) {
       </DialogHeader>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+        <div className="flex items-center gap-2 rounded-md border border-status-success-border bg-status-success-bg px-3 py-2 text-sm text-status-success-fg">
           <CheckCircleIcon className="h-4 w-4 shrink-0" />
           {result.imported} bill{result.imported !== 1 ? "s" : ""} imported successfully.
         </div>

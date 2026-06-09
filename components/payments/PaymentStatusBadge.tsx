@@ -6,10 +6,10 @@ import type { Payment } from "@/types";
 const badgeVariants = cva("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", {
   variants: {
     status: {
-      scheduled: "bg-blue-100 text-blue-800",
-      initiated: "bg-yellow-100 text-yellow-800",
-      paid: "bg-green-100 text-green-800",
-      failed: "bg-red-100 text-red-800",
+      scheduled: "[background:var(--status-scheduled-bg)] [color:var(--status-scheduled-fg)]",
+      initiated: "[background:var(--status-initiated-bg)] [color:var(--status-initiated-fg)]",
+      paid: "[background:var(--status-paid-bg)] [color:var(--status-paid-fg)]",
+      failed: "[background:var(--status-failed-bg)] [color:var(--status-failed-fg)]",
     },
   },
 });

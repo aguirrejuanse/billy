@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "./ThemeToggle";
 
 const pageTitles: Record<string, string> = {
   "/bills": "Bills",
@@ -15,8 +16,9 @@ export function TopBar() {
   const title = pageTitles[segment] ?? "Billy";
 
   return (
-    <header className="h-14 border-b flex items-center px-6">
-      <h1 className="text-sm font-semibold">{title}</h1>
+    <header className="h-14 border-b bg-background flex items-center justify-between px-6">
+      <h1 className="text-base font-semibold tracking-tight">{title}</h1>
+      <ThemeToggle />
     </header>
   );
 }

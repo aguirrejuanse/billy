@@ -3,6 +3,7 @@
 import { useFieldArray } from "react-hook-form";
 import type { CreateBillInput } from "@/lib/validators";
 import { FormInput } from "@/components/ui/form-fields";
+import { Button } from "@/components/ui/button";
 
 export function LineItemsField() {
   const { fields, append, remove } = useFieldArray<CreateBillInput>({ name: "lineItems" });
@@ -11,13 +12,15 @@ export function LineItemsField() {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">Line Items</span>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
           onClick={() => append({ description: "", amount: 0 })}
-          className="text-xs text-primary underline underline-offset-4 cursor-pointer"
+          className="text-xs h-auto p-0 text-primary"
         >
           + Add line item
-        </button>
+        </Button>
       </div>
 
       {fields.length === 0 && <p className="text-xs text-muted-foreground">No line items added.</p>}
@@ -37,14 +40,16 @@ export function LineItemsField() {
             min="0"
             placeholder="0.00"
           />
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             type="button"
             onClick={() => remove(index)}
-            className={`self-start ${index === 0 ? "mt-6.5" : "mt-2"} text-muted-foreground hover:text-destructive text-sm cursor-pointer`}
+            className={`self-start size-6 ${index === 0 ? "mt-6.5" : "mt-2"} text-muted-foreground hover:text-destructive`}
             aria-label="Remove line item"
           >
             ×
-          </button>
+          </Button>
         </div>
       ))}
     </div>
