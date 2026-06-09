@@ -9,8 +9,7 @@ import { usePagination } from "@/hooks/usePagination";
 import { BillsTable } from "@/components/bills/BillsTable";
 import { BillsFilters } from "@/components/bills/BillsFilters";
 import { CreateBillSheet } from "@/components/bills/CreateBillSheet";
-import { ImportBillsButton } from "@/components/bills/ImportBillsButton";
-import { ExportBillsButton } from "@/components/bills/ExportBillsButton";
+import { BillsActionsMenu } from "@/components/bills/BillsActionsMenu";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { Button } from "@/components/ui/button";
 
@@ -42,15 +41,14 @@ export default function BillsPage() {
   return (
     <>
       <div className="flex flex-col h-full gap-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <BillsFilters />
           <div className="flex items-center gap-2">
-            <ExportBillsButton
+            <BillsActionsMenu
               bills={exportBills}
               selectionCount={selectedBills.length}
               disabled={isPlaceholderData}
             />
-            <ImportBillsButton disabled={isPlaceholderData} />
             <Button onClick={toggleCreateBill} disabled={isPlaceholderData} data-tour="new-bill">
               New Bill
             </Button>

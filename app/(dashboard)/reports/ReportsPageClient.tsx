@@ -12,11 +12,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ReportHeader } from "@/components/reports/ReportHeader";
 import { agingToCsv, downloadCsv } from "@/lib/export-utils";
+import { useDemoSession } from "@/hooks/useDemoSession";
 
 const sectionTitle = "text-sm font-semibold text-muted-foreground uppercase tracking-wide";
 
 export default function ReportsPage() {
   const { data, isLoading, isError, refetch, endDate, setEndDate } = useAgingReportQuery();
+  const { user } = useDemoSession();
 
   if (isLoading) {
     return (
@@ -45,7 +47,10 @@ export default function ReportsPage() {
       <ReportHeader
         endDate={endDate}
         onEndDateChange={setEndDate}
-        onExport={() => downloadCsv(agingToCsv(data.rows), `ap-aging-${endDate}.csv`)}
+        onExport={() => {
+          const username = user?.name?.toLowerCase().replace(/\s+/g, "-") ?? "export";
+          downloadCsv(agingToCsv(data.rows), `${username}-${endDate}-billy-aging.csv`);
+        }}
         exportDisabled={data.rows.length === 0}
       />
 

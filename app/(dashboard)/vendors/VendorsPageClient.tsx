@@ -24,8 +24,7 @@ export default function VendorsPage() {
   return (
     <>
       <div className="flex flex-col h-full gap-4">
-        <div className="flex items-center justify-between">
-          <div />
+        <div className="flex items-center justify-end">
           <Button onClick={toggleCreateVendor}>New Vendor</Button>
         </div>
         <div className="flex-1 min-h-0">
