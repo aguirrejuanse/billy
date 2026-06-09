@@ -93,14 +93,14 @@
   --chart-4: oklch(0.371 0.08 264);
   --chart-5: oklch(0.269 0.04 264);
   --radius: 0.625rem;
-  /* Sidebar: dark slate-900 */
-  --sidebar: oklch(0.13 0.02 264);
-  --sidebar-foreground: oklch(0.85 0 0);
+  /* Sidebar: light */
+  --sidebar: oklch(0.97 0.003 247);
+  --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.457 0.24 264);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.2 0.02 264);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.22 0.02 264);
+  --sidebar-accent: oklch(0.922 0.003 247);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.457 0.24 264);
   /* Status semantic tokens */
   --status-draft-bg: oklch(0.97 0 0);
