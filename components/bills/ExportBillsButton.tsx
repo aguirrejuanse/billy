@@ -2,7 +2,7 @@
 
 import { DownloadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { billsToCsv, downloadCsv } from "@/lib/export-utils";
+import { exportBillsCsv } from "@/lib/export-utils";
 import { useDemoSession } from "@/hooks/useDemoSession";
 import type { BillWithRelations } from "@/types";
 
@@ -19,10 +19,7 @@ export function ExportBillsButton({ bills, selectionCount = 0, disabled }: Expor
 
   function handleExport() {
     if (isEmpty) return;
-    const csv = billsToCsv(bills);
-    const username = user?.name?.toLowerCase().replace(/\s+/g, "-") ?? "export";
-    const date = new Date().toISOString().split("T")[0];
-    downloadCsv(csv, `${username}-${date}-billy.csv`);
+    exportBillsCsv(bills, user?.name ?? "export");
   }
 
   return (

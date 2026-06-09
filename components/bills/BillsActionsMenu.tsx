@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ImportBillsModal } from "@/components/bills/import/ImportBillsModal";
-import { billsToCsv, downloadCsv } from "@/lib/export-utils";
+import { exportBillsCsv } from "@/lib/export-utils";
 import { useDemoSession } from "@/hooks/useDemoSession";
 import type { BillWithRelations } from "@/types";
 
@@ -27,10 +27,7 @@ export function BillsActionsMenu({ bills, selectionCount = 0, disabled }: BillsA
 
   function handleExport() {
     if (isEmpty) return;
-    const csv = billsToCsv(bills);
-    const username = user?.name?.toLowerCase().replace(/\s+/g, "-") ?? "export";
-    const date = new Date().toISOString().split("T")[0];
-    downloadCsv(csv, `${username}-${date}-billy.csv`);
+    exportBillsCsv(bills, user?.name ?? "export");
   }
 
   const exportLabel = selectionCount > 0 ? `Export (${selectionCount})` : "Export CSV";
@@ -50,24 +47,26 @@ export function BillsActionsMenu({ bills, selectionCount = 0, disabled }: BillsA
       </div>
 
       {/* Mobile: dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button variant="outline" size="sm" disabled={disabled} className="sm:hidden">
-            <ChevronDownIcon className="h-4 w-4" />
-            Actions
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleExport} disabled={isEmpty}>
-            <DownloadIcon className="h-4 w-4 mr-2" />
-            {exportLabel}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setImportOpen(true)}>
-            <UploadIcon className="h-4 w-4 mr-2" />
-            Import CSV
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="sm:hidden">
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button variant="outline" size="sm" disabled={disabled}>
+              <ChevronDownIcon className="h-4 w-4" />
+              Actions
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleExport} disabled={isEmpty}>
+              <DownloadIcon className="h-4 w-4 mr-2" />
+              {exportLabel}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setImportOpen(true)}>
+              <UploadIcon className="h-4 w-4 mr-2" />
+              Import CSV
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <ImportBillsModal open={importOpen} onOpenChange={setImportOpen} />
     </>
