@@ -5,6 +5,7 @@ import { SignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useDemoLoginMutation } from "@/hooks/useDemoLoginMutation";
 import { Button } from "@/components/ui/button";
+import { BillyLogo } from "@/app/(auth)/BillyLogo";
 
 export function SignInForm() {
   const router = useRouter();
@@ -19,11 +20,12 @@ export function SignInForm() {
 
   if (showClerkSignIn) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <Button onClick={() => setShowClerkSignIn(false)} variant="ghost">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6">
+        <BillyLogo />
+        <SignIn />
+        <Button onClick={() => setShowClerkSignIn(false)} variant="ghost" size="sm">
           ← Back
         </Button>
-        <SignIn />
       </div>
     );
   }
@@ -31,10 +33,7 @@ export function SignInForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-sm space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Billy</h1>
-          <p className="text-sm text-muted-foreground">Accounts Payable Manager</p>
-        </div>
+        <BillyLogo />
 
         <div className="space-y-3">
           <Button onClick={handleDemoLogin} disabled={isPending} size="lg" className="w-full">
