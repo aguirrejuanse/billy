@@ -30,7 +30,7 @@ const COLUMNS = (
     <TableHead>Vendor</TableHead>
     <TableHead className="hidden md:table-cell">Bill #</TableHead>
     <TableHead className="text-right">Amount</TableHead>
-    <TableHead className="hidden md:table-cell">Method</TableHead>
+    <TableHead>Method</TableHead>
     <TableHead className="hidden md:table-cell">Scheduled Date</TableHead>
     <TableHead className="w-25">Status</TableHead>
     <TableHead className="w-30">Actions</TableHead>
@@ -102,7 +102,7 @@ export function PaymentsTable({ payments, isLoading, error, onRetry }: PaymentsT
                   <TableCell className="text-right font-medium tabular-nums">
                     {formatCurrency(payment.amount)}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell text-sm">
+                  <TableCell className="text-sm">
                     {paymentMethodLabels[payment.paymentMethod]}
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-sm tabular-nums">
