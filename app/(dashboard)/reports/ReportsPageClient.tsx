@@ -22,7 +22,7 @@ export default function ReportsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 h-full overflow-y-auto scrollbar-hide">
+      <div className="space-y-6 h-full overflow-y-auto scrollbar-hide pb-6 px-0.5">
         <AgingSummaryCardsSkeleton />
         <AgingTableSkeleton />
       </div>
@@ -43,7 +43,7 @@ export default function ReportsPage() {
   if (!data) return null;
 
   return (
-    <div className="space-y-6 h-full overflow-y-auto scrollbar-hide">
+    <div className="space-y-6 h-full overflow-y-auto scrollbar-hide pb-6 px-0.5">
       <ReportHeader
         endDate={endDate}
         onEndDateChange={setEndDate}
@@ -58,7 +58,7 @@ export default function ReportsPage() {
       <AgingSummaryCards summary={data.summary} />
 
       <h2 className={sectionTitle}>Aging Breakdown</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-6">
             <AgingDistributionChart rows={data.rows} />

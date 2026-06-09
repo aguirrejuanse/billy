@@ -32,7 +32,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
       <div className="flex flex-col flex-1 overflow-hidden bg-background min-w-0">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-hidden p-4 md:p-6">{children}</main>
+        <main className="flex-1 overflow-hidden p-4 md:p-6 min-w-0">{children}</main>
       </div>
     </div>
   );

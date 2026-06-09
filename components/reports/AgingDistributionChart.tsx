@@ -30,8 +30,8 @@ export function AgingDistributionChart({ rows }: AgingDistributionChartProps) {
             data={data}
             cx="50%"
             cy="50%"
-            innerRadius={70}
-            outerRadius={110}
+            innerRadius="35%"
+            outerRadius="55%"
             paddingAngle={2}
             dataKey="value"
           >
