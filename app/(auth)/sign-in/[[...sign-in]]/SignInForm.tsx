@@ -22,10 +22,12 @@ export function SignInForm() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-6">
         <BillyLogo />
-        <SignIn />
-        <Button onClick={() => setShowClerkSignIn(false)} variant="ghost" size="sm">
-          ← Back
-        </Button>
+        <div className="flex flex-col items-start gap-2 w-fit">
+          <Button onClick={() => setShowClerkSignIn(false)} variant="ghost" size="sm">
+            ← Back
+          </Button>
+          <SignIn />
+        </div>
       </div>
     );
   }
