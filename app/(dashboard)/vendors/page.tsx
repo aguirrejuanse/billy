@@ -23,18 +23,20 @@ export default function VendorsPage() {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="flex flex-col h-full gap-4">
         <div className="flex items-center justify-between">
           <div />
           <Button onClick={toggleCreateVendor}>New Vendor</Button>
         </div>
-        <VendorsTable
-          vendors={paginated}
-          isLoading={isLoading}
-          error={error}
-          onRetry={refetch}
-          onEdit={setEditingVendor}
-        />
+        <div className="flex-1 min-h-0">
+          <VendorsTable
+            vendors={paginated}
+            isLoading={isLoading}
+            error={error}
+            onRetry={refetch}
+            onEdit={setEditingVendor}
+          />
+        </div>
         <PaginationBar
           page={page}
           totalPages={totalPages}

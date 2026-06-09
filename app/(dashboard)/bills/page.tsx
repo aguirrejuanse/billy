@@ -41,7 +41,7 @@ export default function BillsPage() {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="flex flex-col h-full gap-4">
         <div className="flex items-center justify-between">
           <BillsFilters />
           <div className="flex items-center gap-2">
@@ -56,18 +56,20 @@ export default function BillsPage() {
             </Button>
           </div>
         </div>
-        <BillsTable
-          bills={paginated}
-          isLoading={isPlaceholderData}
-          error={error}
-          onRetry={refetch}
-          selectedIds={selectedIds}
-          onToggle={toggle}
-          onSelectAll={selectAll}
-          onClear={clear}
-          allSelected={allSelected}
-          someSelected={someSelected}
-        />
+        <div className="flex-1 min-h-0">
+          <BillsTable
+            bills={paginated}
+            isLoading={isPlaceholderData}
+            error={error}
+            onRetry={refetch}
+            selectedIds={selectedIds}
+            onToggle={toggle}
+            onSelectAll={selectAll}
+            onClear={clear}
+            allSelected={allSelected}
+            someSelected={someSelected}
+          />
+        </div>
         <PaginationBar
           page={page}
           totalPages={totalPages}

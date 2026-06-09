@@ -82,53 +82,51 @@ export function PaymentsTable({ payments, isLoading, error, onRetry }: PaymentsT
   if (error) return <ErrorFallback message="Failed to load payments." onRetry={onRetry} />;
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full gap-4">
       <p className="text-sm text-muted-foreground">{payments.length} payments</p>
       {payments.length === 0 ? (
         <EmptyState message="No payments found." />
       ) : (
-        <div className="rounded-lg border overflow-hidden">
-          <div className="overflow-auto">
-            <Table>
-              <TableHeader className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
-                {COLUMNS}
-              </TableHeader>
-              <TableBody>
-                {payments.map((payment) => (
-                  <TableRow key={payment.id} className="hover:bg-muted/40 transition-colors">
-                    <TableCell className="font-medium">{payment.vendor.name}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {payment.bill.number}
-                    </TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">
-                      {formatCurrency(payment.amount)}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {paymentMethodLabels[payment.paymentMethod]}
-                    </TableCell>
-                    <TableCell className="text-sm tabular-nums">
-                      {formatDate(payment.scheduledDate)}
-                    </TableCell>
-                    <TableCell>
-                      <PaymentStatusBadge status={payment.status} />
-                    </TableCell>
-                    <TableCell>
-                      <PaymentActionButton paymentId={payment.id} status={payment.status} />
-                    </TableCell>
-                    <TableCell>
-                      <Link
-                        href={`/bills/${payment.billId}`}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-                      >
-                        View
-                        <ArrowRight className="h-3 w-3" />
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+        <div className="rounded-lg border overflow-auto h-full scrollbar-hide">
+          <Table>
+            <TableHeader className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
+              {COLUMNS}
+            </TableHeader>
+            <TableBody>
+              {payments.map((payment) => (
+                <TableRow key={payment.id} className="hover:bg-muted/40 transition-colors">
+                  <TableCell className="font-medium">{payment.vendor.name}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {payment.bill.number}
+                  </TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">
+                    {formatCurrency(payment.amount)}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {paymentMethodLabels[payment.paymentMethod]}
+                  </TableCell>
+                  <TableCell className="text-sm tabular-nums">
+                    {formatDate(payment.scheduledDate)}
+                  </TableCell>
+                  <TableCell>
+                    <PaymentStatusBadge status={payment.status} />
+                  </TableCell>
+                  <TableCell>
+                    <PaymentActionButton paymentId={payment.id} status={payment.status} />
+                  </TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/bills/${payment.billId}`}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      View
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

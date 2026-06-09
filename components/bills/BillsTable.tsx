@@ -124,81 +124,77 @@ export function BillsTable({
   }
 
   return (
-    <div className="space-y-4" data-tour="bills-table">
+    <div className="flex flex-col h-full gap-4" data-tour="bills-table">
       <p className="text-sm text-muted-foreground">{bills.length} bills</p>
       {bills.length === 0 ? (
         <EmptyState message="No bills found." />
       ) : (
-        <div className="rounded-lg border overflow-hidden">
-          <div className="overflow-auto">
-            <Table>
-              <TableHeader className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
-                <TableRow>
+        <div className="rounded-lg border overflow-auto h-full scrollbar-hide">
+          <Table>
+            <TableHeader className="sticky top-0 z-10 bg-muted border-b">
+              <TableRow>
+                {selectable && (
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allSelected}
+                      indeterminate={someSelected}
+                      onCheckedChange={handleHeaderCheck}
+                      aria-label="Select all bills"
+                    />
+                  </TableHead>
+                )}
+                <TableHead>Vendor</TableHead>
+                <TableHead>Bill #</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="w-35">Status</TableHead>
+                <TableHead>Due Date</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {bills.map((bill) => (
+                <TableRow
+                  key={bill.id}
+                  data-state={selectedIds?.has(bill.id) ? "selected" : undefined}
+                  className="hover:bg-muted/40 transition-colors"
+                >
                   {selectable && (
-                    <TableHead className="w-10">
+                    <TableCell>
                       <Checkbox
-                        checked={allSelected}
-                        indeterminate={someSelected}
-                        onCheckedChange={handleHeaderCheck}
-                        aria-label="Select all bills"
+                        checked={selectedIds?.has(bill.id) ?? false}
+                        onCheckedChange={() => onToggle(bill.id)}
+                        aria-label={`Select bill ${bill.number}`}
                       />
-                    </TableHead>
+                    </TableCell>
                   )}
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Bill #</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="w-35">Status</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead />
+                  <TableCell className="font-medium">{bill.vendor?.name ?? "—"}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {bill.number}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {bill.description ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">
+                    {formatCurrency(bill.amount, bill.currency)}
+                  </TableCell>
+                  <TableCell>
+                    <BillStatusBadge status={bill.status} />
+                  </TableCell>
+                  <TableCell className="text-sm tabular-nums">{formatDate(bill.dueDate)}</TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/bills/${bill.id}`}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      View
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bills.map((bill) => (
-                  <TableRow
-                    key={bill.id}
-                    data-state={selectedIds?.has(bill.id) ? "selected" : undefined}
-                    className="hover:bg-muted/40 transition-colors"
-                  >
-                    {selectable && (
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedIds?.has(bill.id) ?? false}
-                          onCheckedChange={() => onToggle(bill.id)}
-                          aria-label={`Select bill ${bill.number}`}
-                        />
-                      </TableCell>
-                    )}
-                    <TableCell className="font-medium">{bill.vendor?.name ?? "—"}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {bill.number}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {bill.description ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">
-                      {formatCurrency(bill.amount, bill.currency)}
-                    </TableCell>
-                    <TableCell>
-                      <BillStatusBadge status={bill.status} />
-                    </TableCell>
-                    <TableCell className="text-sm tabular-nums">
-                      {formatDate(bill.dueDate)}
-                    </TableCell>
-                    <TableCell>
-                      <Link
-                        href={`/bills/${bill.id}`}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-                      >
-                        View
-                        <ArrowRight className="h-3 w-3" />
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

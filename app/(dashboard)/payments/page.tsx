@@ -31,14 +31,16 @@ export default function PaymentsPage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full gap-4">
       <PaymentsFilters />
-      <PaymentsTable
-        payments={paginated}
-        isLoading={isPlaceholderData}
-        error={error}
-        onRetry={refetch}
-      />
+      <div className="flex-1 min-h-0">
+        <PaymentsTable
+          payments={paginated}
+          isLoading={isPlaceholderData}
+          error={error}
+          onRetry={refetch}
+        />
+      </div>
       <PaginationBar
         page={page}
         totalPages={totalPages}
