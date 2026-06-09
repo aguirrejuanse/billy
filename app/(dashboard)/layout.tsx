@@ -1,8 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { TopBar } from "@/components/layout/TopBar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -16,13 +16,5 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     if (!userId) redirect("/sign-in");
   }
 
-  return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden bg-background">
-        <TopBar />
-        <main className="flex-1 overflow-hidden p-6">{children}</main>
-      </div>
-    </div>
-  );
+  return <DashboardShell>{children}</DashboardShell>;
 }
