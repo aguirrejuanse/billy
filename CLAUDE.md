@@ -99,6 +99,21 @@ types/
 - Components with 2+ distinct sections → extract each into `components/[entity]/info/` subfolder from the start. Use a `Field` primitive for label/value pairs.
 - Use `<Link href="...">` for navigation instead of `router.push()` or `router.back()` — works without JS, prefetches, and never silently fails when there's no history
 - Label maps (e.g. `paymentMethodLabels`) go in `lib/formatters.ts` typed as `Record<Schema["field"], string>` — never inline as `Record<string, string>`
+- Always use `<Button>` from `@/components/ui/button` instead of raw `<button>` — raw buttons hardcode colors that break in dark mode (`bg-primary` resolves differently per theme)
+- `variant="link"` for actions that navigate or reset URL state (e.g. "Clear filters"); `variant="ghost"` for low-emphasis actions; `variant="outline"` for secondary actions in error/empty states
+- `ErrorFallback` uses `py-16 text-center items-center` — centered in its container, not flush to top-left
+
+### Discriminated union para prop groups opcionales
+
+Cuando N props solo tienen sentido juntas (e.g. selección de filas), usá un discriminated union con `prop?: never` en la rama vacía — TypeScript exige todos o ninguno en el call site:
+
+```ts
+type SelectionProps =
+  | { onToggle: (id: string) => void; selectedIds: Set<string>; allSelected: boolean; ... }
+  | { onToggle?: never; selectedIds?: never; allSelected?: never; ... };
+```
+
+Nota: el narrowing no atraviesa funciones separadas. Si una función interna usa los props, agregá `if (!guardProp) return` al inicio como workaround para satisfacer al compilador.
 
 ### React Hook Form + Zod v4
 
@@ -293,3 +308,11 @@ function daysAgo(n: number): string {
   return `${year}-${month}-${day}`;
 }
 ```
+
+### Dark mode — shadcn's `--primary` changes in dark mode by design
+
+Dark mode is implemented via `next-themes`. `ThemeToggle` is an isolated Client Component using `resolvedTheme` + a `mounted` pattern to avoid hydration mismatch. The `mounted` pattern is correct and necessary — the IDE linter complains but `pnpm lint` passes clean.
+
+### Recharts `<Pie>` — use `fill` field in data, not `color`
+
+`<Pie>` automatically picks up a `fill` field from each data object for both sector color and legend color. Naming it `color` silently falls back to the default (grey legend). `<Cell>` is deprecated in Recharts 3.x — do not use it.
