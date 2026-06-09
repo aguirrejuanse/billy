@@ -5,6 +5,7 @@ import { useVendorsQuery } from "@/hooks/useVendorsQuery";
 import { paymentStatusLabels, paymentMethodLabels } from "@/lib/formatters";
 import { paymentStatusEnum, paymentMethodEnum } from "@/db/schema";
 import { FilterSelect } from "@/components/bills/filters/FilterSelect";
+import { Button } from "@/components/ui/button";
 
 export function PaymentsFilters() {
   const router = useRouter();
@@ -66,12 +67,14 @@ export function PaymentsFilters() {
         disabled={isPending}
       />
       {hasFilters && (
-        <button
+        <Button
+          variant="link"
+          size="sm"
           onClick={clearFilters}
-          className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors cursor-pointer"
+          className="text-xs text-muted-foreground"
         >
           Clear filters
-        </button>
+        </Button>
       )}
     </div>
   );

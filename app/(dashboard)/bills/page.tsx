@@ -12,6 +12,7 @@ import { CreateBillSheet } from "@/components/bills/CreateBillSheet";
 import { ImportBillsButton } from "@/components/bills/ImportBillsButton";
 import { ExportBillsButton } from "@/components/bills/ExportBillsButton";
 import { PaginationBar } from "@/components/ui/pagination-bar";
+import { Button } from "@/components/ui/button";
 
 export default function BillsPage() {
   const [openCreateBill, setOpenCreateBill] = useState(false);
@@ -53,14 +54,9 @@ export default function BillsPage() {
               disabled={isPlaceholderData}
             />
             <ImportBillsButton disabled={isPlaceholderData} />
-            <button
-              onClick={toggleCreateBill}
-              disabled={isPlaceholderData}
-              data-tour="new-bill"
-              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <Button onClick={toggleCreateBill} disabled={isPlaceholderData} data-tour="new-bill">
               New Bill
-            </button>
+            </Button>
           </div>
         </div>
         <BillsTable

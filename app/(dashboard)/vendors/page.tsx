@@ -7,6 +7,7 @@ import { VendorsTable } from "@/components/vendors/VendorsTable";
 import { CreateVendorSheet } from "@/components/vendors/CreateVendorSheet";
 import { EditVendorSheet } from "@/components/vendors/EditVendorSheet";
 import { PaginationBar } from "@/components/ui/pagination-bar";
+import { Button } from "@/components/ui/button";
 import type { VendorWithMethods } from "@/types";
 
 export default function VendorsPage() {
@@ -28,12 +29,7 @@ export default function VendorsPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div />
-          <button
-            onClick={toggleCreateVendor}
-            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer"
-          >
-            New Vendor
-          </button>
+          <Button onClick={toggleCreateVendor}>New Vendor</Button>
         </div>
         <VendorsTable
           vendors={paginated}

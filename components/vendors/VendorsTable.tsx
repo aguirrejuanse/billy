@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { paymentMethodLabels } from "@/lib/formatters";
 import { ErrorFallback } from "@/components/ui/error-fallback";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
 import type { VendorWithMethods } from "@/types";
 
 interface VendorsTableProps {
@@ -98,12 +99,14 @@ export function VendorsTable({ vendors, isLoading, error, onRetry, onEdit }: Ven
                     </TableCell>
                     <TableCell>
                       {vendor.ownerId !== null && onEdit && (
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => onEdit(vendor)}
-                          className="text-xs font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
+                          className="text-xs h-auto py-1"
                         >
                           Edit
-                        </button>
+                        </Button>
                       )}
                     </TableCell>
                   </TableRow>

@@ -54,12 +54,14 @@ export function Sidebar() {
         {isDemo ? (
           <div className="space-y-3">
             {pathname === "/bills" && (
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={restartTour}
-                className="w-full flex items-center justify-center gap-2 rounded-md border border-sidebar-primary/30 bg-sidebar-primary/10 px-3 py-1.5 text-xs font-medium text-sidebar-primary hover:bg-sidebar-primary/20 transition-colors cursor-pointer"
+                className="w-full border-sidebar-primary/30 bg-sidebar-primary/10 text-sidebar-primary hover:bg-sidebar-primary/20 hover:text-sidebar-primary"
               >
                 ✦ Restart tour
-              </button>
+              </Button>
             )}
             <div className="flex items-center gap-2">
               <div className="size-7 rounded-full bg-sidebar-primary flex items-center justify-center text-xs font-medium text-sidebar-primary-foreground shrink-0">
