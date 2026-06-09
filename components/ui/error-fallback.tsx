@@ -7,15 +7,10 @@ interface ErrorFallbackProps {
 
 export function ErrorFallback({ message = "Failed to load data.", onRetry }: ErrorFallbackProps) {
   return (
-    <div className="flex flex-col items-start gap-2">
-      <p className="text-sm text-destructive">{message}</p>
+    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+      <p className="text-sm font-medium text-destructive">{message}</p>
       {onRetry && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onRetry}
-          className="text-sm h-auto p-0 underline underline-offset-4"
-        >
+        <Button variant="outline" size="sm" onClick={onRetry}>
           Try again
         </Button>
       )}
