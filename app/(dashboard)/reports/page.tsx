@@ -20,7 +20,7 @@ export default function ReportsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 h-full overflow-y-auto scrollbar-hide">
         <AgingSummaryCardsSkeleton />
         <AgingTableSkeleton />
       </div>
@@ -41,7 +41,7 @@ export default function ReportsPage() {
   if (!data) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-full overflow-y-auto scrollbar-hide">
       <ReportHeader
         endDate={endDate}
         onEndDateChange={setEndDate}
