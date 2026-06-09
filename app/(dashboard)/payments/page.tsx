@@ -2,8 +2,10 @@
 
 import { useSearchParams } from "next/navigation";
 import { usePaymentsQuery } from "@/hooks/usePaymentsQuery";
+import { usePagination } from "@/hooks/usePagination";
 import { PaymentsTable } from "@/components/payments/PaymentsTable";
 import { PaymentsFilters } from "@/components/payments/PaymentsFilters";
+import { PaginationBar } from "@/components/ui/pagination-bar";
 
 export default function PaymentsPage() {
   const searchParams = useSearchParams();
@@ -23,14 +25,26 @@ export default function PaymentsPage() {
     vendorId,
   });
 
+  const { page, setPage, totalPages, paginated, total } = usePagination<(typeof payments)[number]>(
+    payments,
+    15
+  );
+
   return (
     <div className="space-y-4">
       <PaymentsFilters />
       <PaymentsTable
-        payments={payments}
+        payments={paginated}
         isLoading={isPlaceholderData}
         error={error}
         onRetry={refetch}
+      />
+      <PaginationBar
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={15}
+        onPageChange={setPage}
       />
     </div>
   );

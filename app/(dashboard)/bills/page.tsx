@@ -5,11 +5,13 @@ import { useSearchParams } from "next/navigation";
 import { useBillsQuery } from "@/hooks/useBillsQuery";
 import { useBillSelection } from "@/hooks/useBillSelection";
 import { useDemoTour } from "@/hooks/useDemoTour";
+import { usePagination } from "@/hooks/usePagination";
 import { BillsTable } from "@/components/bills/BillsTable";
 import { BillsFilters } from "@/components/bills/BillsFilters";
 import { CreateBillSheet } from "@/components/bills/CreateBillSheet";
 import { ImportBillsButton } from "@/components/bills/ImportBillsButton";
 import { ExportBillsButton } from "@/components/bills/ExportBillsButton";
+import { PaginationBar } from "@/components/ui/pagination-bar";
 
 export default function BillsPage() {
   const [openCreateBill, setOpenCreateBill] = useState(false);
@@ -27,6 +29,11 @@ export default function BillsPage() {
 
   const { selectedIds, selectedBills, toggle, selectAll, clear, allSelected, someSelected } =
     useBillSelection(bills);
+
+  const { page, setPage, totalPages, paginated, total } = usePagination<(typeof bills)[number]>(
+    bills,
+    15
+  );
 
   const toggleCreateBill = () => setOpenCreateBill((prev) => !prev);
 
@@ -57,7 +64,7 @@ export default function BillsPage() {
           </div>
         </div>
         <BillsTable
-          bills={bills}
+          bills={paginated}
           isLoading={isPlaceholderData}
           error={error}
           onRetry={refetch}
@@ -67,6 +74,13 @@ export default function BillsPage() {
           onClear={clear}
           allSelected={allSelected}
           someSelected={someSelected}
+        />
+        <PaginationBar
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          pageSize={15}
+          onPageChange={setPage}
         />
       </div>
       <CreateBillSheet open={openCreateBill} onOpenChange={toggleCreateBill} />

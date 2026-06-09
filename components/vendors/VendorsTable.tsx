@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { paymentMethodLabels } from "@/lib/formatters";
+import { ErrorFallback } from "@/components/ui/error-fallback";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { VendorWithMethods } from "@/types";
 
 interface VendorsTableProps {
@@ -63,61 +65,53 @@ export function VendorsTableSkeleton() {
 export function VendorsTable({ vendors, isLoading, error, onRetry, onEdit }: VendorsTableProps) {
   if (isLoading) return <VendorsTableSkeleton />;
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-start gap-2">
-        <p className="text-sm text-destructive">Failed to load vendors.</p>
-        {onRetry && (
-          <button
-            onClick={onRetry}
-            className="text-sm font-medium underline underline-offset-4 cursor-pointer"
-          >
-            Try again
-          </button>
-        )}
-      </div>
-    );
-  }
+  if (error) return <ErrorFallback message="Failed to load vendors." onRetry={onRetry} />;
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">{vendors.length} vendors</p>
       {vendors.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">No vendors found.</div>
+        <EmptyState message="No vendors found." />
       ) : (
-        <Table>
-          <TableHeader>{COLUMNS}</TableHeader>
-          <TableBody>
-            {vendors.map((vendor) => (
-              <TableRow key={vendor.id}>
-                <TableCell className="font-medium">{vendor.name}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {vendor.email ?? "—"}
-                </TableCell>
-                <TableCell className="text-sm">
-                  {vendor.paymentMethods.map((m) => paymentMethodLabels[m]).join(", ")}
-                </TableCell>
-                <TableCell>
-                  {vendor.ownerId === null ? (
-                    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
-                      Global
-                    </span>
-                  ) : null}
-                </TableCell>
-                <TableCell>
-                  {vendor.ownerId !== null && onEdit && (
-                    <button
-                      onClick={() => onEdit(vendor)}
-                      className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                    >
-                      Edit
-                    </button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="rounded-lg border overflow-hidden">
+          <div className="overflow-auto">
+            <Table>
+              <TableHeader className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
+                {COLUMNS}
+              </TableHeader>
+              <TableBody>
+                {vendors.map((vendor) => (
+                  <TableRow key={vendor.id} className="hover:bg-muted/40 transition-colors">
+                    <TableCell className="font-medium">{vendor.name}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {vendor.email ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {vendor.paymentMethods.map((m) => paymentMethodLabels[m]).join(", ")}
+                    </TableCell>
+                    <TableCell>
+                      {vendor.ownerId === null ? (
+                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+                          Global
+                        </span>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      {vendor.ownerId !== null && onEdit && (
+                        <button
+                          onClick={() => onEdit(vendor)}
+                          className="text-xs font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       )}
     </div>
   );
