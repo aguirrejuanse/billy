@@ -43,7 +43,7 @@ export default function ReportsPage() {
   if (!data) return null;
 
   return (
-    <div className="space-y-6 h-full overflow-y-auto scrollbar-hide pb-6 px-0.5">
+    <div className="space-y-6 h-full overflow-y-auto scrollbar-hide pb-6 px-0.5 pt-1">
       <ReportHeader
         endDate={endDate}
         onEndDateChange={setEndDate}
