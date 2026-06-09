@@ -3,6 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,9 +18,15 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}>
+      <html
+        lang="en"
+        suppressHydrationWarning
+        className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
+      >
         <body className="min-h-full flex flex-col">
-          <ReactQueryProvider>{children}</ReactQueryProvider>
+          <ThemeProvider>
+            <ReactQueryProvider>{children}</ReactQueryProvider>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>
