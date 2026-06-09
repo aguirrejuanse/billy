@@ -82,16 +82,16 @@ export function ImportUploadStep({
             Column reference
             <ChevronDownIcon className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="border-t px-3 pb-2 pt-1 font-mono text-xs space-y-1">
-            <div className="flex gap-4 text-muted-foreground font-medium uppercase tracking-wide text-[10px] pb-1 border-b">
-              <span className="w-32">Column</span>
-              <span className="w-16">Required</span>
+          <div className="border-t px-3 pb-2 pt-1 font-mono text-xs space-y-1 max-h-48 overflow-y-auto">
+            <div className="grid grid-cols-[minmax(0,1fr)_4rem_minmax(0,1fr)] gap-x-3 text-muted-foreground font-medium uppercase tracking-wide text-[10px] pb-1 border-b">
+              <span>Column</span>
+              <span>Required</span>
               <span>Notes</span>
             </div>
             {COLUMN_DOCS.map(([col, required, note]) => (
-              <div key={col} className="flex gap-4">
-                <span className="w-32 text-foreground">{col}</span>
-                <span className={`w-16 ${required ? "text-foreground" : "text-muted-foreground"}`}>
+              <div key={col} className="grid grid-cols-[minmax(0,1fr)_4rem_minmax(0,1fr)] gap-x-3">
+                <span className="truncate text-foreground">{col}</span>
+                <span className={required ? "text-foreground" : "text-muted-foreground"}>
                   {required ? "yes" : "no"}
                 </span>
                 <span className="text-muted-foreground">{note}</span>

@@ -24,8 +24,8 @@ export function ImportValidRowsTable({ rows }: ImportValidRowsTableProps) {
             <TableHead>Vendor</TableHead>
             <TableHead>Number</TableHead>
             <TableHead className="text-right">Amount</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead>Payment</TableHead>
+            <TableHead className="hidden sm:table-cell">Due Date</TableHead>
+            <TableHead className="hidden sm:table-cell">Payment</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -36,8 +36,10 @@ export function ImportValidRowsTable({ rows }: ImportValidRowsTableProps) {
               <TableCell className="text-right tabular-nums">
                 {formatCurrency(row.amount, row.currency)}
               </TableCell>
-              <TableCell>{row.due_date}</TableCell>
-              <TableCell>{paymentMethodLabels[row.payment_type]}</TableCell>
+              <TableCell className="hidden sm:table-cell">{row.due_date}</TableCell>
+              <TableCell className="hidden sm:table-cell">
+                {paymentMethodLabels[row.payment_type]}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
