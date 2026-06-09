@@ -47,6 +47,7 @@ function startTour() {
     animate: true,
     overlayOpacity: 0.4,
     disableActiveInteraction: true,
+    popoverClass: "billy-tour",
     steps,
     onDestroyStarted: () => {
       localStorage.setItem(TOUR_KEY, "1");

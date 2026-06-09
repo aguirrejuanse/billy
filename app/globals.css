@@ -164,6 +164,54 @@
   }
 }
 
+/* driver.js popover polish */
+.billy-tour.driver-popover {
+  border-radius: 10px !important;
+  box-shadow:
+    0 8px 30px #0000001a,
+    0 2px 8px #00000012 !important;
+  padding: 20px !important;
+}
+
+.billy-tour .driver-popover-title {
+  font-size: 16px !important;
+  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif !important;
+}
+
+.billy-tour .driver-popover-description {
+  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif !important;
+  color: #555 !important;
+}
+
+.billy-tour .driver-popover-progress-text {
+  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif !important;
+}
+
+.billy-tour .driver-popover-footer button {
+  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif !important;
+  border-radius: 6px !important;
+  padding: 5px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.billy-tour .driver-popover-next-btn {
+  background-color: oklch(0.457 0.24 264) !important;
+  color: #fff !important;
+  border-color: oklch(0.457 0.24 264) !important;
+  text-shadow: none !important;
+}
+
+.billy-tour .driver-popover-next-btn:hover,
+.billy-tour .driver-popover-next-btn:focus {
+  background-color: oklch(0.4 0.24 264) !important;
+  border-color: oklch(0.4 0.24 264) !important;
+}
+
+.billy-tour .driver-popover-prev-btn {
+  text-shadow: none !important;
+}
+
 @layer utilities {
   .scrollbar-hide {
     scrollbar-width: none;
