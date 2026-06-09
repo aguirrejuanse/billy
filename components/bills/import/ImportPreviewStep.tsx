@@ -35,7 +35,7 @@ export function ImportPreviewStep({
 
       <div className="space-y-4">
         <div className="flex items-center gap-4 text-sm">
-          <span className="flex items-center gap-1.5 text-green-600">
+          <span className="flex items-center gap-1.5 text-status-success-fg">
             <CheckCircleIcon className="h-4 w-4" />
             {validRows.length} row{validRows.length !== 1 ? "s" : ""} valid
           </span>
