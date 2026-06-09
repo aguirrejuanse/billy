@@ -313,6 +313,26 @@ function daysAgo(n: number): string {
 
 Dark mode is implemented via `next-themes`. `ThemeToggle` is an isolated Client Component using `resolvedTheme` + a `mounted` pattern to avoid hydration mismatch. The `mounted` pattern is correct and necessary — the IDE linter complains but `pnpm lint` passes clean.
 
+### Sticky thead — remove `overflow-x-auto` from shadcn `Table` container
+
+shadcn's `Table` wraps `<table>` in a div with `overflow-x-auto`. This breaks `position: sticky` on `TableHeader` because the scroll container is wrong. The fix: remove `overflow-x-auto` from `table-container` in `components/ui/table.tsx` and own the scroll in the table's border wrapper instead.
+
+Full height chain required for sticky header + scrollable tbody + fixed pagination:
+
+1. `table.tsx` — `table-container` div: no overflow
+2. Table border wrapper: `rounded-lg border overflow-auto h-full scrollbar-hide` ← scroll lives here
+3. Table root wrapper: `flex flex-col h-full gap-4`
+4. Page scroll div: `flex-1 min-h-0` (no overflow)
+5. Page outer div: `flex flex-col h-full gap-4`
+
+### Dashboard layout — `overflow-hidden` on `<main>`, each page owns its scroll
+
+`<main>` uses `overflow-hidden`, not `overflow-y-auto`. List pages control scroll inside their table. Pages without an internal scroll container (e.g. `/reports`) need `overflow-y-auto h-full` on their root wrapper or content gets clipped.
+
+### driver.js tour — use `popoverClass` to override styles
+
+driver.js uses `all:unset` on `.driver-popover` and button elements — generic CSS selectors lose in specificity. Pass `popoverClass: "billy-tour"` in the driver config and scope all overrides to `.billy-tour` in `globals.css`. Without the custom class, styles are ignored.
+
 ### Recharts `<Pie>` — use `fill` field in data, not `color`
 
 `<Pie>` automatically picks up a `fill` field from each data object for both sector color and legend color. Naming it `color` silently falls back to the default (grey legend). `<Cell>` is deprecated in Recharts 3.x — do not use it.
