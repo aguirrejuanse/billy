@@ -128,6 +128,7 @@ Payments are first-class objects. Finance teams can track status, mark as paid, 
 | --------- | -------------------------- | ----------------------------------------------------------------- |
 | Framework | Next.js 16 App Router      | API Routes included — one repo, no CORS, typed backend            |
 | UI        | shadcn/ui + Tailwind 4     | Clean design system close to Ramp/Linear aesthetic                |
+| Theming   | next-themes                | Dark mode with system-aware toggle, persisted in localStorage     |
 | ORM       | Drizzle ORM                | Schema in pure TypeScript, no codegen step, type-safe queries     |
 | Database  | Neon (serverless Postgres) | Free tier, Vercel-compatible, no connection pooling config needed |
 | Auth      | Clerk                      | Production-grade auth in under 20 minutes                         |
@@ -142,6 +143,9 @@ Enums enforce valid values at the database level. Transition gating lives in the
 
 **Bill approval as an atomic DB transaction**
 `bill.status → approved` and `INSERT INTO payments` happen in a single transaction. Either both succeed or neither does. No approved bill without a payment; no orphaned payment without an approved bill.
+
+**Semantic color tokens + dark mode**
+All colors go through CSS custom properties (`--primary`, `--status-approved-bg`, etc.) bridged into Tailwind via `@theme inline`. Dark mode flips the token values — no component-level color logic. The sidebar has its own sub-theme (`--sidebar-*`) so it adapts independently.
 
 **URL as filter state**
 Filters are stored in URL search params, not React state. The Server Component reads them directly and filters server-side — bookmarkable, shareable, and no client-side waterfall.
