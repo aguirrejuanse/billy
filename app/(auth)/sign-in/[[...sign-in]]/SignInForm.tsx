@@ -32,7 +32,7 @@ export function SignInForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-sm space-y-8">
+      <div className="w-full max-w-sm space-y-8 px-6">
         <BillyLogo />
 
         <div className="space-y-3">

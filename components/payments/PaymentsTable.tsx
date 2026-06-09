@@ -28,10 +28,10 @@ interface PaymentsTableProps {
 const COLUMNS = (
   <TableRow>
     <TableHead>Vendor</TableHead>
-    <TableHead>Bill #</TableHead>
+    <TableHead className="hidden md:table-cell">Bill #</TableHead>
     <TableHead className="text-right">Amount</TableHead>
-    <TableHead>Method</TableHead>
-    <TableHead>Scheduled Date</TableHead>
+    <TableHead className="hidden md:table-cell">Method</TableHead>
+    <TableHead className="hidden md:table-cell">Scheduled Date</TableHead>
     <TableHead className="w-25">Status</TableHead>
     <TableHead className="w-30">Actions</TableHead>
     <TableHead />
@@ -96,16 +96,16 @@ export function PaymentsTable({ payments, isLoading, error, onRetry }: PaymentsT
               {payments.map((payment) => (
                 <TableRow key={payment.id} className="hover:bg-muted/40 transition-colors">
                   <TableCell className="font-medium">{payment.vendor.name}</TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
+                  <TableCell className="hidden md:table-cell font-mono text-xs text-muted-foreground">
                     {payment.bill.number}
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
                     {formatCurrency(payment.amount)}
                   </TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell className="hidden md:table-cell text-sm">
                     {paymentMethodLabels[payment.paymentMethod]}
                   </TableCell>
-                  <TableCell className="text-sm tabular-nums">
+                  <TableCell className="hidden md:table-cell text-sm tabular-nums">
                     {formatDate(payment.scheduledDate)}
                   </TableCell>
                   <TableCell>
