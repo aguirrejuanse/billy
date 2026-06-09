@@ -15,8 +15,8 @@ export function TopBar() {
   const title = pageTitles[segment] ?? "Billy";
 
   return (
-    <header className="h-14 border-b flex items-center px-6">
-      <h1 className="text-sm font-semibold">{title}</h1>
+    <header className="h-14 border-b bg-slate-50 flex items-center px-6">
+      <h1 className="text-base font-semibold tracking-tight">{title}</h1>
     </header>
   );
 }
