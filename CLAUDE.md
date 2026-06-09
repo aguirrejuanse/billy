@@ -336,3 +336,19 @@ driver.js uses `all:unset` on `.driver-popover` and button elements — generic 
 ### Recharts `<Pie>` — use `fill` field in data, not `color`
 
 `<Pie>` automatically picks up a `fill` field from each data object for both sector color and legend color. Naming it `color` silently falls back to the default (grey legend). `<Cell>` is deprecated in Recharts 3.x — do not use it.
+
+### Mobile responsive — `DashboardShell` pattern
+
+`app/(dashboard)/layout.tsx` is a Server Component (uses `cookies()` and `auth()`) — it cannot hold state. Mobile sidebar state lives in `DashboardShell` (Client Component). On mobile the sidebar renders as a `Sheet` overlay (`side="left"`); on `md:` it renders as a fixed column. Pattern: `hidden md:flex` wrapper for the fixed sidebar, `Sheet` for mobile.
+
+### `SheetContent` mobile width — use inline `style` to override Base UI
+
+`SheetContent` with `side="left"` has `data-[side=left]:sm:max-w-sm` baked in — Tailwind width classes like `w-56` or `sm:max-w-56` lose in specificity. Use `style={{ width: "14rem", maxWidth: "14rem" }}` — inline styles always win. This is not a workaround; it's the correct tool when fighting data-attribute styles from Base UI.
+
+### Demo tour mobile — Sheet-scoped selectors
+
+`DashboardShell` renders two `<Sidebar>` instances simultaneously: one inside `hidden md:flex` (CSS-hidden, always in the DOM) and one inside the `Sheet` portal (mounted/unmounted). Driver.js takes the first `querySelector` match — always the desktop one. Fix: add `data-sidebar-sheet` to `SheetContent`, and mobile tour selectors use `[data-sidebar-sheet] [data-tour='...']` to scope to the Sheet sidebar only. On mobile, `startTour` opens the Sheet and waits 300ms before calling `drive()` so the DOM is ready.
+
+### Reusable Tailwind class strings — `const` over wrapper components
+
+To reuse a set of Tailwind classes across multiple `return` branches in the same file, store the string as a module-level `const` (e.g. `const pageStyles = "space-y-6 h-full ..."`) and use it as `className={pageStyles}`. No wrapper component, no `@apply` in CSS needed.
