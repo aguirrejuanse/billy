@@ -9,44 +9,59 @@ import { Bill, BillDetailParams } from "@/types";
 
 type RouteParams = { params: Promise<BillDetailParams> };
 
-interface HandleBillActionParams {
-  action: BillAction;
-  bill: Bill;
+type BillPatch = Partial<Pick<Bill, "status">>;
+type DbExecutor = Pick<typeof db, "update">;
+
+const ACTION_CONFIG: Record<
+  BillAction,
+  { requiredStatus: Bill["status"]; errorMessage: string; patch: BillPatch }
+> = {
+  submit: {
+    requiredStatus: "draft",
+    errorMessage: "Only draft bills can be submitted",
+    patch: { status: "awaiting_approval" },
+  },
+  approve: {
+    requiredStatus: "awaiting_approval",
+    errorMessage: "Bill cannot be approved in current status",
+    patch: { status: "approved" },
+  },
+  reject: {
+    requiredStatus: "awaiting_approval",
+    errorMessage: "Bill cannot be rejected in current status",
+    patch: { status: "rejected" },
+  },
+  archive: {
+    requiredStatus: "rejected",
+    errorMessage: "Only rejected bills can be archived",
+    patch: { status: "archived" },
+  },
+};
+
+async function updateBillStatus(
+  executor: DbExecutor,
+  billId: string,
+  requiredStatus: Bill["status"],
+  patch: BillPatch
+): Promise<void> {
+  const [updated] = await executor
+    .update(billsTable)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(and(eq(billsTable.id, billId), eq(billsTable.status, requiredStatus)))
+    .returning({ id: billsTable.id });
+
+  if (!updated) throw new Error("RACE_LOST");
 }
 
-async function handleBillAction({
-  action,
-  bill,
-}: HandleBillActionParams): Promise<NextResponse | undefined> {
-  if (action === "submit") {
-    if (bill.status !== "draft")
-      return NextResponse.json({ error: "Only draft bills can be submitted" }, { status: 400 });
+async function handleBillAction(action: BillAction, bill: Bill): Promise<NextResponse | undefined> {
+  const { requiredStatus, errorMessage, patch } = ACTION_CONFIG[action];
 
-    const [updated] = await db
-      .update(billsTable)
-      .set({ status: "awaiting_approval", updatedAt: new Date() })
-      .where(and(eq(billsTable.id, bill.id), eq(billsTable.status, "draft")))
-      .returning({ id: billsTable.id });
-
-    if (!updated) throw new Error("RACE_LOST");
-    return;
-  }
+  if (bill.status !== requiredStatus)
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
 
   if (action === "approve") {
-    if (bill.status !== "awaiting_approval")
-      return NextResponse.json(
-        { error: "Bill cannot be approved in current status" },
-        { status: 400 }
-      );
-
     await db.transaction(async (tx) => {
-      const [updated] = await tx
-        .update(billsTable)
-        .set({ status: "approved", updatedAt: new Date() })
-        .where(and(eq(billsTable.id, bill.id), eq(billsTable.status, "awaiting_approval")))
-        .returning({ id: billsTable.id });
-
-      if (!updated) throw new Error("RACE_LOST");
+      await updateBillStatus(tx, bill.id, requiredStatus, patch);
 
       await tx.insert(paymentsTable).values({
         billId: bill.id,
@@ -60,25 +75,10 @@ async function handleBillAction({
     return;
   }
 
-  if (action === "reject") {
-    if (bill.status !== "awaiting_approval")
-      return NextResponse.json(
-        { error: "Bill cannot be rejected in current status" },
-        { status: 400 }
-      );
-
-    const [updated] = await db
-      .update(billsTable)
-      .set({ status: "rejected", updatedAt: new Date() })
-      .where(and(eq(billsTable.id, bill.id), eq(billsTable.status, "awaiting_approval")))
-      .returning({ id: billsTable.id });
-
-    if (!updated) throw new Error("RACE_LOST");
-    return;
-  }
-
-  action satisfies never;
+  await updateBillStatus(db, bill.id, requiredStatus, patch);
 }
+
+export const maxDuration = 30;
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   let body: unknown;
@@ -89,10 +89,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 
   try {
-    const { user, error } = await getAuthenticatedUser();
+    const [{ user, error }, { id }] = await Promise.all([getAuthenticatedUser(), params]);
     if (error) return error;
 
-    const { id } = await params;
     if (!isValidUuid(id)) {
       return NextResponse.json({ error: "Bill not found" }, { status: 404 });
     }
@@ -113,7 +112,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Bill not found" }, { status: 404 });
     }
 
-    const actionError = await handleBillAction({ action, bill });
+    const actionError = await handleBillAction(action, bill);
     if (actionError) return actionError;
 
     const updated = await db.query.bills.findFirst({

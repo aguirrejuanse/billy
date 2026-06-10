@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, lte } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/db";
 import { bills as billsTable, vendors as vendorsTable, billStatusEnum } from "@/db/schema";
 import { getAuthenticatedUser } from "@/lib/auth";
-import { isoDateToLocal, MS_PER_DAY } from "@/lib/formatters";
+import { isoDateToLocal, MS_PER_DAY, todayLocalISO } from "@/lib/formatters";
 import type { AgingRow, AgingReportData } from "@/types";
 
 export const maxDuration = 30;
+
+const querySchema = z.object({
+  endDate: z.iso.date().optional(),
+});
 
 type BucketKey = keyof Omit<AgingRow, "vendorId" | "vendorName" | "total">;
 
@@ -22,14 +27,18 @@ const OPEN_STATUSES = billStatusEnum.enumValues.filter(
   (s) => s === "awaiting_approval" || s === "approved"
 );
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const { user, error } = await getAuthenticatedUser();
     if (error) return error;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayMs = today.getTime();
+    const parsed = querySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid endDate" }, { status: 400 });
+    }
+
+    const endDate = parsed.data.endDate ?? todayLocalISO();
+    const endMs = isoDateToLocal(endDate).getTime();
 
     const rows = await db
       .select({
@@ -40,13 +49,19 @@ export async function GET(_request: NextRequest) {
       })
       .from(billsTable)
       .innerJoin(vendorsTable, eq(billsTable.vendorId, vendorsTable.id))
-      .where(and(eq(billsTable.ownerId, user.id), inArray(billsTable.status, OPEN_STATUSES)));
+      .where(
+        and(
+          eq(billsTable.ownerId, user.id),
+          inArray(billsTable.status, OPEN_STATUSES),
+          lte(billsTable.dueDate, endDate)
+        )
+      );
 
     const vendorMap = new Map<string, AgingRow>();
     let overdueBillCount = 0;
 
     for (const { dueDate, amount: rawAmount, vendorId, vendorName } of rows) {
-      const days = Math.floor((todayMs - isoDateToLocal(dueDate).getTime()) / MS_PER_DAY);
+      const days = Math.floor((endMs - isoDateToLocal(dueDate).getTime()) / MS_PER_DAY);
       const bucket = getBucket(days);
       const amount = Number(rawAmount);
 

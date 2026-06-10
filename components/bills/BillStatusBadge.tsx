@@ -6,11 +6,11 @@ import type { Bill } from "@/types";
 const badgeVariants = cva("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", {
   variants: {
     status: {
-      draft: "bg-muted text-muted-foreground",
-      awaiting_approval: "bg-yellow-100 text-yellow-800",
-      approved: "bg-green-100 text-green-800",
-      rejected: "bg-red-100 text-red-800",
-      archived: "bg-muted text-muted-foreground",
+      draft: "[background:var(--status-draft-bg)] [color:var(--status-draft-fg)]",
+      awaiting_approval: "[background:var(--status-pending-bg)] [color:var(--status-pending-fg)]",
+      approved: "[background:var(--status-approved-bg)] [color:var(--status-approved-fg)]",
+      rejected: "[background:var(--status-rejected-bg)] [color:var(--status-rejected-fg)]",
+      archived: "[background:var(--status-draft-bg)] [color:var(--status-draft-fg)]",
     },
   },
 });

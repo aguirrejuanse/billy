@@ -1,177 +1,425 @@
 /* eslint-disable no-console */
 import "dotenv/config";
-import { inArray } from "drizzle-orm";
+import ws from "ws";
+import { neonConfig } from "@neondatabase/serverless";
+import { inArray, isNull, and, eq } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
+
+neonConfig.webSocketConstructor = ws;
+
+const isoDate = (d: Date) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const daysAgo = (n: number) => {
+  const d = new Date(today);
+  d.setDate(d.getDate() - n);
+  return isoDate(d);
+};
+
+const daysFromNow = (n: number) => {
+  const d = new Date(today);
+  d.setDate(d.getDate() + n);
+  return isoDate(d);
+};
 
 async function main() {
   console.log("🌱 Seeding database...");
 
-  const userValues = {
-    clerkId: "user_3Djl6jdsuiMGYyJE7gEqdCRplqB",
-    name: "Juan Aguirre",
-    email: "juanseagui@gmail.com",
-  };
+  // ── Users ──────────────────────────────────────────────────────────────────
+  const userDefs = [
+    {
+      clerkId: "user_3Djl6jdsuiMGYyJE7gEqdCRplqB",
+      name: "Juan Aguirre",
+      email: "juanseagui@gmail.com",
+    },
+    {
+      clerkId: "user_3DyEtyScDW1J95UGCM2kU4V0hby",
+      name: "Billy Demo",
+      email: "demo@billy.app",
+    },
+  ];
 
-  // User
-  const [user] = await db.insert(schema.users).values(userValues).onConflictDoNothing().returning();
+  const resolvedUsers: Record<string, string> = {};
 
-  const ownerId = user?.id;
-  if (!ownerId) {
-    const existing = await db.query.users.findFirst({
-      where: (u, { eq }) => eq(u.clerkId, userValues.clerkId),
-    });
-    if (!existing) throw new Error("Could not create or find user");
-    console.log("User already exists, using existing record");
-    await seedVendorsAndBills(existing.id);
-    return;
+  for (const def of userDefs) {
+    const [inserted] = await db.insert(schema.users).values(def).onConflictDoNothing().returning();
+
+    if (inserted) {
+      resolvedUsers[def.clerkId] = inserted.id;
+    } else {
+      const existing = await db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.clerkId, def.clerkId),
+      });
+      if (!existing) throw new Error(`Could not resolve user ${def.clerkId}`);
+      resolvedUsers[def.clerkId] = existing.id;
+    }
   }
 
-  await seedVendorsAndBills(ownerId);
-}
+  const juanId = resolvedUsers["user_3Djl6jdsuiMGYyJE7gEqdCRplqB"];
+  const demoId = resolvedUsers["user_3DyEtyScDW1J95UGCM2kU4V0hby"];
+  console.log("Users ready");
 
-const vendorValues: schema.NewVendor[] = [
-  { name: "Acme Corp", email: "billing@acme.com" },
-  { name: "Globex Inc", email: "ap@globex.com" },
-  { name: "Initech LLC", email: "invoices@initech.com" },
-];
+  // ── Global vendors ─────────────────────────────────────────────────────────
+  const globalVendorDefs: schema.NewVendor[] = [
+    { name: "Acme Corp", email: "billing@acme.com" },
+    { name: "Globex Inc", email: "ap@globex.com" },
+    { name: "Initech LLC", email: "invoices@initech.com" },
+    { name: "Umbrella Co", email: "ap@umbrella.com" },
+    { name: "Cyberdyne Systems", email: "billing@cyberdyne.io" },
+    { name: "Soylent Corp", email: "finance@soylent.com" },
+    { name: "Weyland-Yutani", email: "ap@weyland.corp" },
+  ];
 
-const vendorPaymentMethodValues: {
-  name: string;
-  methods: schema.VendorPaymentMethod["method"][];
-}[] = [
-  { name: "Acme Corp", methods: ["ach", "wire"] },
-  { name: "Globex Inc", methods: ["wire"] },
-  { name: "Initech LLC", methods: ["check", "ach"] },
-];
-
-async function seedVendorsAndBills(ownerId: string) {
-  // Find or create global vendors
-  const existingVendors = await db.query.vendors.findMany({
+  const existingGlobal = await db.query.vendors.findMany({
     where: (v, { inArray, isNull, and }) =>
       and(
         inArray(
           v.name,
-          vendorValues.map((vv) => vv.name)
+          globalVendorDefs.map((vv) => vv.name)
         ),
         isNull(v.ownerId)
       ),
   });
 
-  const toInsert = vendorValues.filter((vv) => !existingVendors.find((v) => v.name === vv.name));
-  const newVendors =
+  const toInsert = globalVendorDefs.filter((vv) => !existingGlobal.find((v) => v.name === vv.name));
+  const newGlobal =
     toInsert.length > 0 ? await db.insert(schema.vendors).values(toInsert).returning() : [];
 
-  const allVendors = [...existingVendors, ...newVendors];
-  const [acme, globex, initech] = vendorValues.map(
-    (vv) => allVendors.find((v) => v.name === vv.name)!
+  const allGlobal = [...existingGlobal, ...newGlobal];
+  const byName = (name: string) => allGlobal.find((v) => v.name === name)!;
+
+  const acme = byName("Acme Corp");
+  const globex = byName("Globex Inc");
+  const initech = byName("Initech LLC");
+  const umbrella = byName("Umbrella Co");
+  const cyberdyne = byName("Cyberdyne Systems");
+  const soylent = byName("Soylent Corp");
+  const weyland = byName("Weyland-Yutani");
+
+  // ── Payment methods ────────────────────────────────────────────────────────
+  const pmDefs: { name: string; methods: schema.VendorPaymentMethod["method"][] }[] = [
+    { name: "Acme Corp", methods: ["ach", "wire"] },
+    { name: "Globex Inc", methods: ["wire"] },
+    { name: "Initech LLC", methods: ["check", "ach"] },
+    { name: "Umbrella Co", methods: ["wire", "card"] },
+    { name: "Cyberdyne Systems", methods: ["ach"] },
+    { name: "Soylent Corp", methods: ["check"] },
+    { name: "Weyland-Yutani", methods: ["wire", "ach"] },
+  ];
+
+  await db.delete(schema.vendorPaymentMethods).where(
+    inArray(
+      schema.vendorPaymentMethods.vendorId,
+      allGlobal.map((v) => v.id)
+    )
   );
 
-  // Repopulate payment methods (delete existing first to avoid duplicates)
-  await db
-    .delete(schema.vendorPaymentMethods)
-    .where(inArray(schema.vendorPaymentMethods.vendorId, [acme.id, globex.id, initech.id]));
-
   await db.insert(schema.vendorPaymentMethods).values(
-    [acme, globex, initech].flatMap((vendor) => {
-      const entry = vendorPaymentMethodValues.find((v) => v.name === vendor.name)!;
-      return entry.methods.map((method) => ({ vendorId: vendor.id, method }));
+    pmDefs.flatMap(({ name, methods }) => {
+      const vendor = byName(name);
+      return methods.map((method) => ({ vendorId: vendor.id, method }));
     })
   );
 
-  console.log("Vendors created");
+  console.log("Vendors + payment methods ready");
 
-  // Bills: spread across AP aging buckets
-  const today = new Date();
-  const daysAgo = (n: number) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() - n);
-    return d.toISOString().split("T")[0];
-  };
-  const daysFromNow = (n: number) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() + n);
-    return d.toISOString().split("T")[0];
-  };
+  // ── Seed bills for a given user ────────────────────────────────────────────
+  await seedBillsForUser(juanId, "JUAN");
+  await seedBillsForUser(demoId, "DEMO");
+
+  console.log("✅ Seed complete!");
+}
+
+async function seedBillsForUser(ownerId: string, prefix: string) {
+  const allGlobal = await db.query.vendors.findMany({
+    where: (v, { isNull }) => isNull(v.ownerId),
+  });
+
+  const byName = (name: string) => allGlobal.find((v) => v.name === name)!;
+  const acme = byName("Acme Corp");
+  const globex = byName("Globex Inc");
+  const initech = byName("Initech LLC");
+  const umbrella = byName("Umbrella Co");
+  const cyberdyne = byName("Cyberdyne Systems");
+  const soylent = byName("Soylent Corp");
+  const weyland = byName("Weyland-Yutani");
+
+  // Delete existing data for this user (payments first to avoid FK violation)
+  const existingBills = await db
+    .select({ id: schema.bills.id })
+    .from(schema.bills)
+    .where(eq(schema.bills.ownerId, ownerId));
+  if (existingBills.length > 0) {
+    await db.delete(schema.payments).where(
+      inArray(
+        schema.payments.billId,
+        existingBills.map((b) => b.id)
+      )
+    );
+  }
+  await db.delete(schema.bills).where(eq(schema.bills.ownerId, ownerId));
 
   const billsData: schema.NewBill[] = [
-    // draft
+    // ── Current (due in future) ──────────────────────────────────────────────
     {
       vendorId: acme.id,
       ownerId,
-      number: "BILL-001",
+      number: `${prefix}-001`,
       amount: "1200.00",
       status: "draft",
-      invoiceDate: daysAgo(5),
-      dueDate: daysFromNow(25),
-      description: "Office supplies Q2",
+      invoiceDate: daysAgo(3),
+      dueDate: daysFromNow(27),
+      description: "Office supplies Q3",
       paymentType: "ach",
     },
-    // awaiting_approval — current (0-30 days overdue)
     {
       vendorId: globex.id,
       ownerId,
-      number: "BILL-002",
+      number: `${prefix}-002`,
       amount: "8500.00",
-      status: "awaiting_approval",
-      invoiceDate: daysAgo(10),
-      dueDate: daysAgo(3),
-      description: "Consulting services March",
+      status: "approved",
+      invoiceDate: daysAgo(8),
+      dueDate: daysFromNow(22),
+      description: "Consulting services June",
       paymentType: "wire",
     },
-    // awaiting_approval — 31-60 days overdue
     {
       vendorId: initech.id,
       ownerId,
-      number: "BILL-003",
-      amount: "3200.50",
-      status: "awaiting_approval",
-      invoiceDate: daysAgo(50),
-      dueDate: daysAgo(40),
-      description: "Software licenses",
-      paymentType: "check",
+      number: `${prefix}-003`,
+      amount: "4750.00",
+      status: "approved",
+      invoiceDate: daysAgo(12),
+      dueDate: daysFromNow(18),
+      description: "Cloud infrastructure May",
+      paymentType: "ach",
     },
-    // awaiting_approval — 61-90 days overdue
+    {
+      vendorId: umbrella.id,
+      ownerId,
+      number: `${prefix}-004`,
+      amount: "2300.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(5),
+      dueDate: daysFromNow(10),
+      description: "Security licensing Q2",
+      paymentType: "wire",
+    },
+    {
+      vendorId: cyberdyne.id,
+      ownerId,
+      number: `${prefix}-005`,
+      amount: "960.00",
+      status: "draft",
+      invoiceDate: daysAgo(2),
+      dueDate: daysFromNow(45),
+      description: "AI model API access",
+      paymentType: "ach",
+    },
+    // ── 1–30 days overdue ────────────────────────────────────────────────────
+    {
+      vendorId: globex.id,
+      ownerId,
+      number: `${prefix}-006`,
+      amount: "3400.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(20),
+      dueDate: daysAgo(5),
+      description: "Data pipeline support",
+      paymentType: "wire",
+    },
     {
       vendorId: acme.id,
       ownerId,
-      number: "BILL-004",
+      number: `${prefix}-007`,
+      amount: "1850.00",
+      status: "approved",
+      invoiceDate: daysAgo(25),
+      dueDate: daysAgo(10),
+      description: "Printer maintenance contract",
+      paymentType: "ach",
+    },
+    {
+      vendorId: soylent.id,
+      ownerId,
+      number: `${prefix}-008`,
+      amount: "720.50",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(30),
+      dueDate: daysAgo(15),
+      description: "Catering services April",
+      paymentType: "check",
+    },
+    {
+      vendorId: weyland.id,
+      ownerId,
+      number: `${prefix}-009`,
+      amount: "5100.00",
+      status: "approved",
+      invoiceDate: daysAgo(28),
+      dueDate: daysAgo(3),
+      description: "R&D equipment lease",
+      paymentType: "wire",
+    },
+    {
+      vendorId: initech.id,
+      ownerId,
+      number: `${prefix}-010`,
+      amount: "2200.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(35),
+      dueDate: daysAgo(20),
+      description: "ERP modules update",
+      paymentType: "ach",
+    },
+    // ── 31–60 days overdue ───────────────────────────────────────────────────
+    {
+      vendorId: acme.id,
+      ownerId,
+      number: `${prefix}-011`,
+      amount: "6300.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(55),
+      dueDate: daysAgo(35),
+      description: "Hardware refresh — workstations",
+      paymentType: "ach",
+    },
+    {
+      vendorId: globex.id,
+      ownerId,
+      number: `${prefix}-012`,
+      amount: "3200.50",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(60),
+      dueDate: daysAgo(40),
+      description: "Software licenses batch",
+      paymentType: "wire",
+    },
+    {
+      vendorId: umbrella.id,
+      ownerId,
+      number: `${prefix}-013`,
+      amount: "1475.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(52),
+      dueDate: daysAgo(32),
+      description: "Compliance audit Q1",
+      paymentType: "wire",
+    },
+    {
+      vendorId: cyberdyne.id,
+      ownerId,
+      number: `${prefix}-014`,
+      amount: "8900.00",
+      status: "approved",
+      invoiceDate: daysAgo(58),
+      dueDate: daysAgo(45),
+      description: "ML infrastructure setup",
+      paymentType: "ach",
+    },
+    // ── 61–90 days overdue ───────────────────────────────────────────────────
+    {
+      vendorId: acme.id,
+      ownerId,
+      number: `${prefix}-015`,
       amount: "650.00",
       status: "awaiting_approval",
-      invoiceDate: daysAgo(80),
+      invoiceDate: daysAgo(85),
       dueDate: daysAgo(65),
       description: "Hardware maintenance",
       paymentType: "ach",
     },
-    // awaiting_approval — +90 days overdue
     {
-      vendorId: globex.id,
+      vendorId: soylent.id,
       ownerId,
-      number: "BILL-005",
-      amount: "15000.00",
+      number: `${prefix}-016`,
+      amount: "2800.00",
       status: "awaiting_approval",
-      invoiceDate: daysAgo(120),
-      dueDate: daysAgo(95),
-      description: "Annual support contract",
+      invoiceDate: daysAgo(88),
+      dueDate: daysAgo(70),
+      description: "Office catering annual",
+      paymentType: "check",
+    },
+    {
+      vendorId: weyland.id,
+      ownerId,
+      number: `${prefix}-017`,
+      amount: "11200.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(90),
+      dueDate: daysAgo(75),
+      description: "Lab equipment rental Q4",
       paymentType: "wire",
     },
-    // approved
     {
       vendorId: initech.id,
       ownerId,
-      number: "BILL-006",
-      amount: "4750.00",
-      status: "approved",
-      invoiceDate: daysAgo(30),
-      dueDate: daysFromNow(5),
-      description: "Cloud infrastructure April",
+      number: `${prefix}-018`,
+      amount: "3650.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(82),
+      dueDate: daysAgo(62),
+      description: "Database migration phase 2",
       paymentType: "ach",
     },
-    // rejected
+    // ── 90+ days overdue ─────────────────────────────────────────────────────
+    {
+      vendorId: globex.id,
+      ownerId,
+      number: `${prefix}-019`,
+      amount: "15000.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(130),
+      dueDate: daysAgo(100),
+      description: "Annual support contract",
+      paymentType: "wire",
+    },
     {
       vendorId: acme.id,
       ownerId,
-      number: "BILL-007",
+      number: `${prefix}-020`,
+      amount: "4400.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(125),
+      dueDate: daysAgo(95),
+      description: "Network infrastructure",
+      paymentType: "ach",
+    },
+    {
+      vendorId: cyberdyne.id,
+      ownerId,
+      number: `${prefix}-021`,
+      amount: "22000.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(150),
+      dueDate: daysAgo(120),
+      description: "T-800 prototype lease",
+      paymentType: "wire",
+    },
+    {
+      vendorId: umbrella.id,
+      ownerId,
+      number: `${prefix}-022`,
+      amount: "7800.00",
+      status: "awaiting_approval",
+      invoiceDate: daysAgo(140),
+      dueDate: daysAgo(110),
+      description: "Biohazard containment SLA",
+      paymentType: "wire",
+    },
+    // ── Rejected / Archived ──────────────────────────────────────────────────
+    {
+      vendorId: acme.id,
+      ownerId,
+      number: `${prefix}-023`,
       amount: "990.00",
       status: "rejected",
       invoiceDate: daysAgo(15),
@@ -179,180 +427,155 @@ async function seedVendorsAndBills(ownerId: string) {
       description: "Duplicate invoice",
       paymentType: "check",
     },
-    // draft — future due date
+    {
+      vendorId: soylent.id,
+      ownerId,
+      number: `${prefix}-024`,
+      amount: "340.00",
+      status: "archived",
+      invoiceDate: daysAgo(60),
+      dueDate: daysAgo(30),
+      description: "Cancelled catering order",
+      paymentType: "check",
+    },
+    // ── With payments (approved, will get payment records) ───────────────────
+    {
+      vendorId: acme.id,
+      ownerId,
+      number: `${prefix}-025`,
+      amount: "3300.00",
+      status: "approved",
+      invoiceDate: daysAgo(20),
+      dueDate: daysFromNow(10),
+      description: "Security audit Q2",
+      paymentType: "wire",
+    },
     {
       vendorId: globex.id,
       ownerId,
-      number: "BILL-008",
-      amount: "2100.75",
-      status: "draft",
-      invoiceDate: daysAgo(2),
-      dueDate: daysFromNow(45),
-      description: "Design services May",
+      number: `${prefix}-026`,
+      amount: "1800.00",
+      status: "approved",
+      invoiceDate: daysAgo(45),
+      dueDate: daysAgo(15),
+      description: "Data migration services",
+      paymentType: "ach",
+    },
+    {
+      vendorId: initech.id,
+      ownerId,
+      number: `${prefix}-027`,
+      amount: "5600.00",
+      status: "approved",
+      invoiceDate: daysAgo(35),
+      dueDate: daysAgo(5),
+      description: "ERP integration phase 1",
+      paymentType: "ach",
+    },
+    {
+      vendorId: weyland.id,
+      ownerId,
+      number: `${prefix}-028`,
+      amount: "9200.00",
+      status: "approved",
+      invoiceDate: daysAgo(10),
+      dueDate: daysFromNow(20),
+      description: "Xenomorph containment units",
       paymentType: "wire",
     },
   ];
 
   const insertedBills = await db.insert(schema.bills).values(billsData).returning();
-  console.log(`${insertedBills.length} bills created`);
+  console.log(`  ${insertedBills.length} bills created for ${prefix}`);
 
-  // Line items for each bill
-  const lineItemsData: schema.NewBillLineItem[] = insertedBills.flatMap((bill) => {
-    switch (bill.number) {
-      case "BILL-001":
-        return [
-          {
-            billId: bill.id,
-            description: "Paper & printing supplies",
-            amount: "450.00",
-            accountCode: "6100",
-          },
-          {
-            billId: bill.id,
-            description: "Desk organizers",
-            amount: "350.00",
-            accountCode: "6100",
-          },
-          {
-            billId: bill.id,
-            description: "Printer cartridges",
-            amount: "400.00",
-            accountCode: "6100",
-          },
-        ];
-      case "BILL-002":
-        return [
-          {
-            billId: bill.id,
-            description: "Strategy consulting (40h)",
-            amount: "6000.00",
-            accountCode: "7200",
-          },
-          {
-            billId: bill.id,
-            description: "Workshop facilitation",
-            amount: "2500.00",
-            accountCode: "7200",
-          },
-        ];
-      case "BILL-003":
-        return [
-          {
-            billId: bill.id,
-            description: "Annual Jira license",
-            amount: "1200.50",
-            accountCode: "7400",
-          },
-          {
-            billId: bill.id,
-            description: "Annual Figma license",
-            amount: "800.00",
-            accountCode: "7400",
-          },
-          {
-            billId: bill.id,
-            description: "GitHub Teams (10 seats)",
-            amount: "1200.00",
-            accountCode: "7400",
-          },
-        ];
-      case "BILL-004":
-        return [
-          {
-            billId: bill.id,
-            description: "Server rack cleaning",
-            amount: "350.00",
-            accountCode: "6500",
-          },
-          {
-            billId: bill.id,
-            description: "Cable management",
-            amount: "300.00",
-            accountCode: "6500",
-          },
-        ];
-      case "BILL-005":
-        return [
-          {
-            billId: bill.id,
-            description: "24/7 support contract",
-            amount: "12000.00",
-            accountCode: "7300",
-          },
-          {
-            billId: bill.id,
-            description: "SLA premium tier",
-            amount: "3000.00",
-            accountCode: "7300",
-          },
-        ];
-      case "BILL-006":
-        return [
-          {
-            billId: bill.id,
-            description: "AWS EC2 instances",
-            amount: "2750.00",
-            accountCode: "7500",
-          },
-          {
-            billId: bill.id,
-            description: "AWS S3 storage",
-            amount: "1000.00",
-            accountCode: "7500",
-          },
-          {
-            billId: bill.id,
-            description: "Bandwidth overage",
-            amount: "1000.00",
-            accountCode: "7500",
-          },
-        ];
-      case "BILL-007":
-        return [
-          {
-            billId: bill.id,
-            description: "Office supplies (duplicate)",
-            amount: "990.00",
-            accountCode: "6100",
-          },
-        ];
-      case "BILL-008":
-        return [
-          {
-            billId: bill.id,
-            description: "UI/UX design system",
-            amount: "1500.75",
-            accountCode: "7200",
-          },
-          {
-            billId: bill.id,
-            description: "Prototype & testing",
-            amount: "600.00",
-            accountCode: "7200",
-          },
-        ];
-      default:
-        return [];
-    }
+  // ── Line items ─────────────────────────────────────────────────────────────
+  const lineItems: schema.NewBillLineItem[] = insertedBills.flatMap((bill) => {
+    const amount = Number(bill.amount);
+    const half = (amount / 2).toFixed(2);
+    const rest = (amount - Number(half)).toFixed(2);
+    return [
+      {
+        billId: bill.id,
+        description: `${bill.description} — line 1`,
+        amount: half,
+        accountCode: "7000",
+      },
+      {
+        billId: bill.id,
+        description: `${bill.description} — line 2`,
+        amount: rest,
+        accountCode: "7000",
+      },
+    ];
   });
 
-  await db.insert(schema.billLineItems).values(lineItemsData);
-  console.log(`${lineItemsData.length} line items created`);
+  await db.insert(schema.billLineItems).values(lineItems);
+  console.log(`  ${lineItems.length} line items created for ${prefix}`);
 
-  // Payment for the approved bill (BILL-006)
-  const approvedBill = insertedBills.find((b) => b.number === "BILL-006")!;
-  await db.insert(schema.payments).values({
-    billId: approvedBill.id,
-    vendorId: initech.id,
-    amount: approvedBill.amount,
-    status: "scheduled",
-    scheduledDate: daysFromNow(5),
-    paymentMethod: "ach",
-    notes: "Scheduled via approval flow",
-  });
-  console.log("Payment created for BILL-006");
+  // ── Payments ───────────────────────────────────────────────────────────────
+  const b = (num: string) => insertedBills.find((b) => b.number === `${prefix}-${num}`)!;
 
-  console.log("Seed complete!");
+  await db.insert(schema.payments).values([
+    {
+      billId: b("025").id,
+      vendorId: acme.id,
+      amount: b("025").amount,
+      status: "initiated",
+      scheduledDate: daysAgo(2),
+      initiatedAt: new Date(),
+      paymentMethod: "wire",
+      notes: "Released — awaiting confirmation",
+    },
+    {
+      billId: b("026").id,
+      vendorId: globex.id,
+      amount: b("026").amount,
+      status: "paid",
+      scheduledDate: daysAgo(20),
+      initiatedAt: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000),
+      paidAt: new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000),
+      paymentMethod: "ach",
+      notes: "Confirmed by bank",
+    },
+    {
+      billId: b("027").id,
+      vendorId: initech.id,
+      amount: b("027").amount,
+      status: "failed",
+      scheduledDate: daysAgo(10),
+      initiatedAt: new Date(today.getTime() - 8 * 24 * 60 * 60 * 1000),
+      paymentMethod: "ach",
+      notes: "Insufficient funds — retry when resolved",
+    },
+    {
+      billId: b("028").id,
+      vendorId: weyland.id,
+      amount: b("028").amount,
+      status: "scheduled",
+      scheduledDate: daysFromNow(20),
+      paymentMethod: "wire",
+      notes: "Scheduled via approval flow",
+    },
+    {
+      billId: b("003").id,
+      vendorId: initech.id,
+      amount: b("003").amount,
+      status: "scheduled",
+      scheduledDate: daysFromNow(18),
+      paymentMethod: "ach",
+      notes: "Scheduled via approval flow",
+    },
+    {
+      billId: b("002").id,
+      vendorId: globex.id,
+      amount: b("002").amount,
+      status: "scheduled",
+      scheduledDate: daysFromNow(22),
+      paymentMethod: "wire",
+      notes: "Scheduled via approval flow",
+    },
+  ]);
+  console.log(`  6 payments created for ${prefix}`);
 }
 
 main().catch((err) => {

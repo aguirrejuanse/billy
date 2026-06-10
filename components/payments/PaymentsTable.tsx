@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,6 +13,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate, paymentMethodLabels } from "@/lib/formatters";
 import { PaymentStatusBadge } from "./PaymentStatusBadge";
+import { PaymentActionButton } from "./PaymentActionButton";
+import { ErrorFallback } from "@/components/ui/error-fallback";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { PaymentWithRelations } from "@/types";
 
 interface PaymentsTableProps {
@@ -22,11 +28,12 @@ interface PaymentsTableProps {
 const COLUMNS = (
   <TableRow>
     <TableHead>Vendor</TableHead>
-    <TableHead>Bill #</TableHead>
+    <TableHead className="hidden md:table-cell">Bill #</TableHead>
     <TableHead className="text-right">Amount</TableHead>
     <TableHead>Method</TableHead>
-    <TableHead>Scheduled Date</TableHead>
-    <TableHead>Status</TableHead>
+    <TableHead className="hidden md:table-cell">Scheduled Date</TableHead>
+    <TableHead className="w-25">Status</TableHead>
+    <TableHead className="w-30">Actions</TableHead>
     <TableHead />
   </TableRow>
 );
@@ -72,57 +79,55 @@ export function PaymentsTableSkeleton() {
 export function PaymentsTable({ payments, isLoading, error, onRetry }: PaymentsTableProps) {
   if (isLoading) return <PaymentsTableSkeleton />;
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-start gap-2">
-        <p className="text-sm text-destructive">Failed to load payments.</p>
-        {onRetry && (
-          <button
-            onClick={onRetry}
-            className="text-sm font-medium underline underline-offset-4 cursor-pointer"
-          >
-            Try again
-          </button>
-        )}
-      </div>
-    );
-  }
+  if (error) return <ErrorFallback message="Failed to load payments." onRetry={onRetry} />;
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full gap-4">
       <p className="text-sm text-muted-foreground">{payments.length} payments</p>
       {payments.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">No payments found.</div>
+        <EmptyState message="No payments found." />
       ) : (
-        <Table>
-          <TableHeader>{COLUMNS}</TableHeader>
-          <TableBody>
-            {payments.map((payment) => (
-              <TableRow key={payment.id}>
-                <TableCell className="font-medium">{payment.vendor.name}</TableCell>
-                <TableCell className="font-mono text-xs">{payment.bill.number}</TableCell>
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(payment.amount)}
-                </TableCell>
-                <TableCell className="text-sm">
-                  {paymentMethodLabels[payment.paymentMethod]}
-                </TableCell>
-                <TableCell className="text-sm">{formatDate(payment.scheduledDate)}</TableCell>
-                <TableCell>
-                  <PaymentStatusBadge status={payment.status} />
-                </TableCell>
-                <TableCell>
-                  <Link
-                    href={`/bills/${payment.billId}`}
-                    className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    View Bill
-                  </Link>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="rounded-lg border overflow-auto h-full scrollbar-hide">
+          <Table>
+            <TableHeader className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
+              {COLUMNS}
+            </TableHeader>
+            <TableBody>
+              {payments.map((payment) => (
+                <TableRow key={payment.id} className="hover:bg-muted/40 transition-colors">
+                  <TableCell className="font-medium">{payment.vendor.name}</TableCell>
+                  <TableCell className="hidden md:table-cell font-mono text-xs text-muted-foreground">
+                    {payment.bill.number}
+                  </TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">
+                    {formatCurrency(payment.amount)}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {paymentMethodLabels[payment.paymentMethod]}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell text-sm tabular-nums">
+                    {formatDate(payment.scheduledDate)}
+                  </TableCell>
+                  <TableCell>
+                    <PaymentStatusBadge status={payment.status} />
+                  </TableCell>
+                  <TableCell>
+                    <PaymentActionButton paymentId={payment.id} status={payment.status} />
+                  </TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/bills/${payment.billId}`}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      View
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   );

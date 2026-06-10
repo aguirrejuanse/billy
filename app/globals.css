@@ -46,16 +46,36 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Status semantic tokens */
+  --color-status-draft-bg: var(--status-draft-bg);
+  --color-status-draft-fg: var(--status-draft-fg);
+  --color-status-pending-bg: var(--status-pending-bg);
+  --color-status-pending-fg: var(--status-pending-fg);
+  --color-status-approved-bg: var(--status-approved-bg);
+  --color-status-approved-fg: var(--status-approved-fg);
+  --color-status-rejected-bg: var(--status-rejected-bg);
+  --color-status-rejected-fg: var(--status-rejected-fg);
+  --color-status-scheduled-bg: var(--status-scheduled-bg);
+  --color-status-scheduled-fg: var(--status-scheduled-fg);
+  --color-status-paid-bg: var(--status-paid-bg);
+  --color-status-paid-fg: var(--status-paid-fg);
+  --color-status-failed-bg: var(--status-failed-bg);
+  --color-status-failed-fg: var(--status-failed-fg);
+  --color-status-initiated-bg: var(--status-initiated-bg);
+  --color-status-initiated-fg: var(--status-initiated-fg);
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-success-fg: var(--status-success-fg);
+  --color-status-success-border: var(--status-success-border);
 }
 
 :root {
-  --background: oklch(1 0 0);
+  --background: oklch(0.984 0.003 247);
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  --card: oklch(0.984 0.003 247);
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.984 0.003 247);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: oklch(0.457 0.24 264);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -66,21 +86,42 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --ring: oklch(0.457 0.24 264);
+  --chart-1: oklch(0.457 0.24 264);
+  --chart-2: oklch(0.556 0.18 264);
+  --chart-3: oklch(0.439 0.12 264);
+  --chart-4: oklch(0.371 0.08 264);
+  --chart-5: oklch(0.269 0.04 264);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
+  /* Sidebar: light */
+  --sidebar: oklch(0.97 0.003 247);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary: oklch(0.457 0.24 264);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.922 0.003 247);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-ring: oklch(0.457 0.24 264);
+  /* Status semantic tokens */
+  --status-draft-bg: oklch(0.97 0 0);
+  --status-draft-fg: oklch(0.5 0 0);
+  --status-pending-bg: oklch(0.97 0.05 85);
+  --status-pending-fg: oklch(0.45 0.12 85);
+  --status-approved-bg: oklch(0.95 0.06 145);
+  --status-approved-fg: oklch(0.38 0.13 145);
+  --status-rejected-bg: oklch(0.96 0.06 27);
+  --status-rejected-fg: oklch(0.45 0.18 27);
+  --status-scheduled-bg: oklch(0.95 0.06 264);
+  --status-scheduled-fg: oklch(0.4 0.18 264);
+  --status-paid-bg: oklch(0.95 0.06 145);
+  --status-paid-fg: oklch(0.38 0.13 145);
+  --status-failed-bg: oklch(0.96 0.06 27);
+  --status-failed-fg: oklch(0.45 0.18 27);
+  --status-initiated-bg: oklch(0.97 0.05 85);
+  --status-initiated-fg: oklch(0.45 0.12 85);
+  --status-success-bg: oklch(0.95 0.06 145);
+  --status-success-fg: oklch(0.38 0.13 145);
+  --status-success-border: oklch(0.85 0.09 145);
 }
 
 .dark {
@@ -90,8 +131,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.488 0.243 264.376);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -120,6 +161,63 @@
 @layer base {
   body {
     font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+/* driver.js popover polish */
+.billy-tour.driver-popover {
+  border-radius: 10px !important;
+  box-shadow:
+    0 8px 30px #0000001a,
+    0 2px 8px #00000012 !important;
+  padding: 20px !important;
+}
+
+.billy-tour .driver-popover-title {
+  font-size: 16px !important;
+  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif !important;
+}
+
+.billy-tour .driver-popover-description {
+  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif !important;
+  color: #555 !important;
+}
+
+.billy-tour .driver-popover-progress-text {
+  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif !important;
+}
+
+.billy-tour .driver-popover-footer button {
+  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif !important;
+  border-radius: 6px !important;
+  padding: 5px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.billy-tour .driver-popover-next-btn {
+  background-color: oklch(0.457 0.24 264) !important;
+  color: #fff !important;
+  border-color: oklch(0.457 0.24 264) !important;
+  text-shadow: none !important;
+}
+
+.billy-tour .driver-popover-next-btn:hover,
+.billy-tour .driver-popover-next-btn:focus {
+  background-color: oklch(0.4 0.24 264) !important;
+  border-color: oklch(0.4 0.24 264) !important;
+}
+
+.billy-tour .driver-popover-prev-btn {
+  text-shadow: none !important;
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 

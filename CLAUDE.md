@@ -49,7 +49,7 @@ lib/
 services/
 ├── bills.ts          # getBillsService, billActionService, etc.
 ├── vendors.ts        # getVendorsService, createVendorService, etc.
-└── payments.ts       # getPaymentsService
+└── payments.ts       # getPaymentsService, paymentActionService
 types/
 └── index.ts          # BillWithRelations, PaymentWithRelations
 ```
@@ -99,6 +99,21 @@ types/
 - Components with 2+ distinct sections → extract each into `components/[entity]/info/` subfolder from the start. Use a `Field` primitive for label/value pairs.
 - Use `<Link href="...">` for navigation instead of `router.push()` or `router.back()` — works without JS, prefetches, and never silently fails when there's no history
 - Label maps (e.g. `paymentMethodLabels`) go in `lib/formatters.ts` typed as `Record<Schema["field"], string>` — never inline as `Record<string, string>`
+- Always use `<Button>` from `@/components/ui/button` instead of raw `<button>` — raw buttons hardcode colors that break in dark mode (`bg-primary` resolves differently per theme)
+- `variant="link"` for actions that navigate or reset URL state (e.g. "Clear filters"); `variant="ghost"` for low-emphasis actions; `variant="outline"` for secondary actions in error/empty states
+- `ErrorFallback` uses `py-16 text-center items-center` — centered in its container, not flush to top-left
+
+### Discriminated union para prop groups opcionales
+
+Cuando N props solo tienen sentido juntas (e.g. selección de filas), usá un discriminated union con `prop?: never` en la rama vacía — TypeScript exige todos o ninguno en el call site:
+
+```ts
+type SelectionProps =
+  | { onToggle: (id: string) => void; selectedIds: Set<string>; allSelected: boolean; ... }
+  | { onToggle?: never; selectedIds?: never; allSelected?: never; ... };
+```
+
+Nota: el narrowing no atraviesa funciones separadas. Si una función interna usa los props, agregá `if (!guardProp) return` al inicio como workaround para satisfacer al compilador.
 
 ### React Hook Form + Zod v4
 
@@ -215,18 +230,68 @@ queryKey: ["bills", filters?.status, filters?.vendorId];
 
 `isNull(table.column)` constructs a SQL expression — it is always truthy in JS. Never use it in an `if` statement or boolean check. Use `value === null` to check fetched data, and `isNull()` only inside Drizzle `where` clauses.
 
-### Union type handlers — always end with `action satisfies never`
+### ACTION_CONFIG pattern for status transitions
 
-When branching over a union type (BillAction, status, etc.), end with `action satisfies never`. TypeScript will error at compile time if a new union member is added without a handler. Works in if/else chains and switch statements.
+When multiple actions share the same structure (status guard → db.update → race check), use an `ACTION_CONFIG` lookup table instead of if-blocks. Adding a new action is a one-liner in the config.
 
 ```ts
-if (action === "submit") { ... return; }
-if (action === "approve") { ... return; }
-if (action === "reject") { ... return; }
-action satisfies never; // compile error if BillAction grows
+const ACTION_CONFIG: Record<MyAction, { requiredStatus: ...; errorMessage: string; patch: ... }> = {
+  submit:  { requiredStatus: "draft",             errorMessage: "...", patch: { status: "awaiting_approval" } },
+  approve: { requiredStatus: "awaiting_approval", errorMessage: "...", patch: { status: "approved" } },
+  // ...
+};
 ```
 
-Each action branch must be independent with its own status guard — no shared guard at the top. This is what enables the exhaustiveness check to work correctly.
+If one action needs a side effect (e.g. `approve` requires a DB transaction + payment insert), keep it as a special branch that still reads `requiredStatus`/`errorMessage` from the config — the data-driven guard and the transactional side effect are separate concerns.
+
+Extract the shared `db.update` block into a typed helper that accepts `db` or a transaction `tx`:
+
+```ts
+type DbExecutor = Pick<typeof db, "update">;
+
+async function updateStatus(executor: DbExecutor, id: string, requiredStatus: ..., patch: ...) {
+  const [updated] = await executor.update(table).set({...patch, updatedAt: new Date()})
+    .where(and(eq(table.id, id), eq(table.status, requiredStatus))).returning({ id: table.id });
+  if (!updated) throw new Error("RACE_LOST");
+}
+```
+
+For simple if-chain handlers (not using ACTION_CONFIG), still end with `action satisfies never` as a compile-time exhaustiveness guard.
+
+### Demo login bypass — cookie `demo-session`
+
+`POST /api/auth/demo` sets an httpOnly cookie `demo-session=true`. The bypass is wired in 4 places: `proxy.ts` (skips Clerk auth), `app/(dashboard)/layout.tsx` (skips `auth.protect()`), `app/page.tsx` (redirects to `/bills`), and `lib/auth.ts` (uses `DEMO_CLERK_ID` env var as clerkId). The demo user must exist in the Neon `users` table with that clerkId.
+
+`getAuthenticatedUser()` now exposes `isDemo` in its return value — use it instead of reading `cookies()` a second time in the same request.
+
+`useDemoSession` is the client-side hook for demo session state: exposes `isDemo`, `user` (name + email from `GET /api/auth/me`), `signIn`, and `signOut`. The sign-in page uses `useDemoLoginMutation` directly — not `useDemoSession` — to avoid a 401 fetch before any session exists.
+
+### New Clerk users have no DB record — auto-upserted on first request
+
+`getAuthenticatedUser()` in `lib/auth.ts` auto-creates the user row on first authenticated request via `currentUser()` + INSERT with `onConflictDoNothing`. A refetch fallback handles the race condition where two simultaneous requests both pass the initial `findFirst` miss before either inserts. No webhook infrastructure needed — the upsert is the single chokepoint for all 9 protected API routes.
+
+### `vi.mock` factory — use `vi.hoisted()` for external variables
+
+When a `vi.mock` factory references a variable declared outside it, Vitest hoists the factory to the top of the file — before the variable is initialized. Use `vi.hoisted()` to declare the variable in the same hoisted scope:
+
+```ts
+const { mockFn } = vi.hoisted(() => ({ mockFn: vi.fn() }));
+
+vi.mock("some/module", () => ({
+  someExport: vi.fn().mockResolvedValue({ set: mockFn }),
+}));
+```
+
+### Payment lifecycle — manual actions, no background processor
+
+`scheduled → [Release] → initiated → [Mark as paid] → paid`
+`initiated → [fails externally] → failed → [Retry] → scheduled`
+
+All three actions (release, mark_paid, retry) are manual Finance Manager actions — same model as Ramp. `PATCH /api/payments/:id` accepts `{ action: "release" | "mark_paid" | "retry" }`.
+
+`ACTION_CONFIG` in `patch.ts` is a lookup table keyed by `PaymentAction` — each entry declares `requiredStatus`, `errorMessage`, and `patch` fields. `handlePaymentAction` uses it to drive a single `db.update` instead of three separate if-branches. Adding a new action is a one-liner in the config.
+
+The PATCH handler does two SELECTs: the first fetches the payment with an ownership JOIN (`bills.ownerId = user.id`); the second re-fetches after the update to build `PaymentWithRelations` for the response — both must include the ownership filter. A missing filter on the second SELECT is an IDOR vector.
 
 ### Test date helpers — use `getFullYear/getMonth/getDate`, not `toISOString()`
 
@@ -243,3 +308,47 @@ function daysAgo(n: number): string {
   return `${year}-${month}-${day}`;
 }
 ```
+
+### Dark mode — shadcn's `--primary` changes in dark mode by design
+
+Dark mode is implemented via `next-themes`. `ThemeToggle` is an isolated Client Component using `resolvedTheme` + a `mounted` pattern to avoid hydration mismatch. The `mounted` pattern is correct and necessary — the IDE linter complains but `pnpm lint` passes clean.
+
+### Sticky thead — remove `overflow-x-auto` from shadcn `Table` container
+
+shadcn's `Table` wraps `<table>` in a div with `overflow-x-auto`. This breaks `position: sticky` on `TableHeader` because the scroll container is wrong. The fix: remove `overflow-x-auto` from `table-container` in `components/ui/table.tsx` and own the scroll in the table's border wrapper instead.
+
+Full height chain required for sticky header + scrollable tbody + fixed pagination:
+
+1. `table.tsx` — `table-container` div: no overflow
+2. Table border wrapper: `rounded-lg border overflow-auto h-full scrollbar-hide` ← scroll lives here
+3. Table root wrapper: `flex flex-col h-full gap-4`
+4. Page scroll div: `flex-1 min-h-0` (no overflow)
+5. Page outer div: `flex flex-col h-full gap-4`
+
+### Dashboard layout — `overflow-hidden` on `<main>`, each page owns its scroll
+
+`<main>` uses `overflow-hidden`, not `overflow-y-auto`. List pages control scroll inside their table. Pages without an internal scroll container (e.g. `/reports`) need `overflow-y-auto h-full` on their root wrapper or content gets clipped.
+
+### driver.js tour — use `popoverClass` to override styles
+
+driver.js uses `all:unset` on `.driver-popover` and button elements — generic CSS selectors lose in specificity. Pass `popoverClass: "billy-tour"` in the driver config and scope all overrides to `.billy-tour` in `globals.css`. Without the custom class, styles are ignored.
+
+### Recharts `<Pie>` — use `fill` field in data, not `color`
+
+`<Pie>` automatically picks up a `fill` field from each data object for both sector color and legend color. Naming it `color` silently falls back to the default (grey legend). `<Cell>` is deprecated in Recharts 3.x — do not use it.
+
+### Mobile responsive — `DashboardShell` pattern
+
+`app/(dashboard)/layout.tsx` is a Server Component (uses `cookies()` and `auth()`) — it cannot hold state. Mobile sidebar state lives in `DashboardShell` (Client Component). On mobile the sidebar renders as a `Sheet` overlay (`side="left"`); on `md:` it renders as a fixed column. Pattern: `hidden md:flex` wrapper for the fixed sidebar, `Sheet` for mobile.
+
+### `SheetContent` mobile width — use inline `style` to override Base UI
+
+`SheetContent` with `side="left"` has `data-[side=left]:sm:max-w-sm` baked in — Tailwind width classes like `w-56` or `sm:max-w-56` lose in specificity. Use `style={{ width: "14rem", maxWidth: "14rem" }}` — inline styles always win. This is not a workaround; it's the correct tool when fighting data-attribute styles from Base UI.
+
+### Demo tour mobile — Sheet-scoped selectors
+
+`DashboardShell` renders two `<Sidebar>` instances simultaneously: one inside `hidden md:flex` (CSS-hidden, always in the DOM) and one inside the `Sheet` portal (mounted/unmounted). Driver.js takes the first `querySelector` match — always the desktop one. Fix: add `data-sidebar-sheet` to `SheetContent`, and mobile tour selectors use `[data-sidebar-sheet] [data-tour='...']` to scope to the Sheet sidebar only. On mobile, `startTour` opens the Sheet and waits 300ms before calling `drive()` so the DOM is ready.
+
+### Reusable Tailwind class strings — `const` over wrapper components
+
+To reuse a set of Tailwind classes across multiple `return` branches in the same file, store the string as a module-level `const` (e.g. `const pageStyles = "space-y-6 h-full ..."`) and use it as `className={pageStyles}`. No wrapper component, no `@apply` in CSS needed.

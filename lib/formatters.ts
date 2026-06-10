@@ -1,4 +1,5 @@
 import type { Bill, Payment } from "@/db/schema";
+import type { PaymentAction } from "@/lib/validators";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -20,6 +21,17 @@ export const paymentStatusLabels: Record<Payment["status"], string> = {
   initiated: "Initiated",
   paid: "Paid",
   failed: "Failed",
+};
+
+export const paymentActionConfig: Partial<
+  Record<
+    Payment["status"],
+    { action: PaymentAction; label: string; variant: "default" | "outline" }
+  >
+> = {
+  scheduled: { action: "release", label: "Release", variant: "outline" },
+  initiated: { action: "mark_paid", label: "Mark as paid", variant: "default" },
+  failed: { action: "retry", label: "Retry", variant: "outline" },
 };
 
 export const billStatusLabels: Record<Bill["status"], string> = {
@@ -55,7 +67,24 @@ export function isoDateToLocal(date: string): Date {
 }
 
 export function formatDate(date: Date | string): string {
-  return dateFormatter.format(date instanceof Date ? date : isoDateToLocal(date));
+  if (date instanceof Date) return dateFormatter.format(date);
+  // timestamp strings ("YYYY-MM-DD HH:MM:SS") are valid without modification;
+  // date-only strings ("YYYY-MM-DD") need local-midnight anchoring to avoid UTC off-by-one
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(date) ? isoDateToLocal(date) : new Date(date);
+  return dateFormatter.format(d);
+}
+
+export function todayLocalISO(): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function truncateLabel(label: string, maxLength: number): string {
+  return label.length > maxLength ? `${label.slice(0, maxLength)}…` : label;
 }
 
 export function formatRelativeDate(date: Date | string): string {

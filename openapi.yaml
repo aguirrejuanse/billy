@@ -307,6 +307,72 @@ components:
           type: integer
           description: Number of individual bills past their due date
 
+    ImportBillRow:
+      type: object
+      required:
+        - vendor_name
+        - number
+        - amount
+        - invoice_date
+        - due_date
+        - payment_type
+      properties:
+        vendor_name:
+          type: string
+          maxLength: 255
+          example: Acme Corp
+        number:
+          type: string
+          maxLength: 100
+          example: INV-001
+        amount:
+          type: number
+          minimum: 0.01
+          maximum: 99999999.99
+          example: 1500.00
+        currency:
+          type: string
+          enum: [USD, EUR, ARS]
+          default: USD
+        invoice_date:
+          type: string
+          format: date
+          example: "2026-05-21"
+        due_date:
+          type: string
+          format: date
+          description: Must be on or after invoice_date
+          example: "2026-05-28"
+        description:
+          type: string
+          maxLength: 5000
+          example: Office supplies Q2
+        payment_type:
+          type: string
+          enum: [ach, wire, check, card]
+          example: ach
+
+    ImportResult:
+      type: object
+      properties:
+        imported:
+          type: integer
+          description: Number of bills successfully created
+          example: 4
+        errors:
+          type: array
+          description: Per-row errors for rows that failed
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+                description: CSV row number (header = 1, first data row = 2)
+                example: 3
+              error:
+                type: string
+                example: 'Bill number "INV-001" already exists'
+
     ErrorResponse:
       type: object
       properties:
@@ -524,7 +590,7 @@ paths:
 
   /bills/{id}/patch:
     patch:
-      summary: Submit, approve, or reject a bill
+      summary: Submit, approve, reject, or archive a bill
       operationId: patchBill
       parameters:
         - name: id
@@ -544,11 +610,12 @@ paths:
               properties:
                 action:
                   type: string
-                  enum: [submit, approve, reject]
+                  enum: [submit, approve, reject, archive]
                   description: >
                     `submit` — transitions a draft bill to awaiting_approval.
                     `approve` — transitions an awaiting_approval bill to approved (atomically creates a scheduled payment).
                     `reject` — transitions an awaiting_approval bill to rejected.
+                    `archive` — transitions a rejected bill to archived (removes it from the active queue).
             examples:
               submit:
                 summary: Submit a draft bill for approval
@@ -562,6 +629,10 @@ paths:
                 summary: Reject a bill
                 value:
                   action: reject
+              archive:
+                summary: Archive a rejected bill
+                value:
+                  action: archive
       responses:
         "200":
           description: Bill updated
@@ -587,6 +658,10 @@ paths:
                   summary: Approve/reject on non-awaiting_approval bill
                   value:
                     error: Bill cannot be approved in current status
+                not_rejected:
+                  summary: Archive on non-rejected bill
+                  value:
+                    error: Only rejected bills can be archived
                 malformed_json:
                   summary: Malformed JSON body
                   value:
@@ -623,6 +698,117 @@ paths:
                 error: Invalid enum value
         "500":
           description: Internal server error
+
+  /bills/import/create:
+    post:
+      summary: Bulk-create bills from a pre-validated CSV payload
+      operationId: importBills
+      description: >
+        Accepts up to 50 pre-validated rows. Each row is processed independently —
+        if one fails, the rest continue. Vendors are matched case-insensitively and
+        auto-created if not found. Global vendors are read-only; private vendors get
+        new payment methods added if missing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rows]
+              properties:
+                rows:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items:
+                    $ref: "#/components/schemas/ImportBillRow"
+            examples:
+              valid:
+                summary: Two valid rows
+                value:
+                  rows:
+                    - vendor_name: Acme Corp
+                      number: INV-001
+                      amount: 1500.00
+                      currency: USD
+                      invoice_date: "2026-05-21"
+                      due_date: "2026-05-28"
+                      payment_type: ach
+                    - vendor_name: Globex
+                      number: INV-002
+                      amount: 800.00
+                      invoice_date: "2026-05-15"
+                      due_date: "2026-06-15"
+                      payment_type: wire
+              partial_failure:
+                summary: Second row has a duplicate bill number → partial success
+                value:
+                  rows:
+                    - vendor_name: Acme Corp
+                      number: INV-NEW
+                      amount: 500.00
+                      invoice_date: "2026-05-21"
+                      due_date: "2026-05-28"
+                      payment_type: ach
+                    - vendor_name: Globex
+                      number: INV-001
+                      amount: 200.00
+                      invoice_date: "2026-05-01"
+                      due_date: "2026-05-15"
+                      payment_type: wire
+      responses:
+        "201":
+          description: Import complete (partial success is still 201)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ImportResult"
+              examples:
+                all_success:
+                  summary: All rows imported
+                  value:
+                    data:
+                      imported: 2
+                      errors: []
+                partial:
+                  summary: One row failed
+                  value:
+                    data:
+                      imported: 1
+                      errors:
+                        - row: 3
+                          error: 'Bill number "INV-001" already exists'
+        "400":
+          description: Malformed JSON body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Invalid JSON body
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation error (rows array empty, exceeds 50, or schema mismatch)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Too many rows — max 50 per import
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /vendors:
     get:
@@ -857,10 +1043,115 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /payments/{id}:
+    patch:
+      summary: Transition a payment's status
+      operationId: patchPayment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Payment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [release, mark_paid, retry]
+            examples:
+              release:
+                summary: Release a scheduled payment
+                value:
+                  action: release
+              mark_paid:
+                summary: Mark an initiated payment as paid
+                value:
+                  action: mark_paid
+              retry:
+                summary: Retry a failed payment
+                value:
+                  action: retry
+      responses:
+        "200":
+          description: Payment updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Payment"
+                      - type: object
+                        properties:
+                          bill:
+                            $ref: "#/components/schemas/Bill"
+                          vendor:
+                            $ref: "#/components/schemas/Vendor"
+        "400":
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                not_scheduled:
+                  summary: Payment is not in required status
+                  value:
+                    error: Only scheduled payments can be released
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent status change (race condition)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Payment status changed concurrently
+        "422":
+          description: Invalid action value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /reports/aging:
     get:
       summary: AP Aging Report — open bills bucketed by days past due, grouped by vendor
       operationId: getAgingReport
+      parameters:
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Cut-off date (YYYY-MM-DD). Only bills with dueDate ≤ endDate are included and aging is calculated relative to this date. Defaults to today.
       responses:
         "200":
           description: OK
@@ -879,6 +1170,74 @@ paths:
                         description: One row per vendor with open bills, sorted by vendor name
                       summary:
                         $ref: "#/components/schemas/AgingSummary"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Unauthorized
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/demo:
+    post:
+      summary: Start a demo session
+      operationId: startDemoSession
+      description: Sets an httpOnly cookie `demo-session=true` valid for 8 hours. Requires `DEMO_CLERK_ID` env var to be configured on the server.
+      responses:
+        "204":
+          description: Demo session started — no body
+        "503":
+          description: Demo not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Demo not configured
+
+  /auth/demo/logout:
+    post:
+      summary: End the demo session
+      operationId: endDemoSession
+      description: Deletes the `demo-session` cookie server-side.
+      responses:
+        "204":
+          description: Demo session ended — no body
+
+  /auth/me:
+    get:
+      summary: Get current user
+      operationId: getMe
+      description: Returns the authenticated user's name, email, and whether the session is a demo session. Works for both Clerk and demo sessions.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [name, email, isDemo]
+                    properties:
+                      name:
+                        type: string
+                        example: Juan Aguirre
+                      email:
+                        type: string
+                        format: email
+                        example: juan@example.com
+                      isDemo:
+                        type: boolean
+                        example: true
         "401":
           description: Unauthorized
           content:

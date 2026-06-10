@@ -1,23 +1,20 @@
 import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { TopBar } from "@/components/layout/TopBar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
+  const cookieStore = await cookies();
+  const isDemo = cookieStore.get("demo-session")?.value === "true";
 
-  return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <TopBar />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
-    </div>
-  );
+  if (!isDemo) {
+    const { userId } = await auth();
+    if (!userId) redirect("/sign-in");
+  }
+
+  return <DashboardShell>{children}</DashboardShell>;
 }

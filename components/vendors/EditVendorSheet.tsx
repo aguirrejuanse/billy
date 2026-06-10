@@ -3,6 +3,7 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { FormInput, FormCheckboxGroup } from "@/components/ui/form-fields";
 import { updateVendorSchema, type UpdateVendorInput } from "@/lib/validators";
 import { paymentMethodEnum } from "@/db/schema";
@@ -57,7 +58,7 @@ export function EditVendorSheet({ vendor, onOpenChange }: EditVendorSheetProps) 
 
   return (
     <Sheet open={!!vendor} onOpenChange={handleOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-md h-full overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Edit Vendor</SheetTitle>
         </SheetHeader>
@@ -79,13 +80,9 @@ export function EditVendorSheet({ vendor, onOpenChange }: EditVendorSheetProps) 
 
             <div className="flex items-center gap-3 justify-between border-t pt-4">
               <p className="text-xs text-destructive flex-1 min-w-0 truncate">{errorMessage}</p>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
-              >
+              <Button type="submit" disabled={isPending} className="shrink-0">
                 {isPending ? "Saving…" : "Save Changes"}
-              </button>
+              </Button>
             </div>
           </form>
         </FormProvider>

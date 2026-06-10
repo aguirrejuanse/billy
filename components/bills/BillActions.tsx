@@ -38,5 +38,13 @@ export function BillActions({ bill, isFetching }: BillActionsProps) {
     );
   }
 
+  if (bill.status === "rejected") {
+    return (
+      <Button variant="outline" onClick={() => mutate("archive")}>
+        Archive
+      </Button>
+    );
+  }
+
   return <p className="text-sm text-muted-foreground">{statusMessages[bill.status] ?? ""}</p>;
 }
