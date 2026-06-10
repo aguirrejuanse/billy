@@ -48,7 +48,7 @@ export function CreateVendorSheet({ open, onOpenChange }: CreateVendorSheetProps
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-md h-full overflow-y-auto">
         <SheetHeader>
           <SheetTitle>New Vendor</SheetTitle>
         </SheetHeader>

@@ -11,7 +11,7 @@ interface CreateBillSheetProps {
 export function CreateBillSheet({ open, onOpenChange }: CreateBillSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-lg h-full overflow-y-auto">
         <SheetHeader>
           <SheetTitle>New Bill</SheetTitle>
         </SheetHeader>

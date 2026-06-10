@@ -2,7 +2,8 @@
 
 import { DownloadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { billsToCsv, downloadCsv } from "@/lib/export-utils";
+import { exportBillsCsv } from "@/lib/export-utils";
+import { useDemoSession } from "@/hooks/useDemoSession";
 import type { BillWithRelations } from "@/types";
 
 interface ExportBillsButtonProps {
@@ -12,13 +13,13 @@ interface ExportBillsButtonProps {
 }
 
 export function ExportBillsButton({ bills, selectionCount = 0, disabled }: ExportBillsButtonProps) {
+  const { user } = useDemoSession();
   const isEmpty = !bills || bills.length === 0;
   const label = selectionCount > 0 ? `Export (${selectionCount})` : "Export CSV";
 
   function handleExport() {
     if (isEmpty) return;
-    const csv = billsToCsv(bills);
-    downloadCsv(csv, "bills-export.csv");
+    exportBillsCsv(bills, user?.name ?? "export");
   }
 
   return (

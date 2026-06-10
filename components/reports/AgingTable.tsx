@@ -38,62 +38,83 @@ export function AgingTable({ rows }: AgingTableProps) {
   );
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Vendor</TableHead>
-          {COLUMNS.map((col) => (
-            <TableHead key={col.key} className="text-right">
-              {col.label}
-            </TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map((row) => (
-          <TableRow key={row.vendorId}>
-            <TableCell className="font-medium">{row.vendorName}</TableCell>
+    <div className="overflow-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Vendor</TableHead>
             {COLUMNS.map((col) => (
-              <TableCell key={col.key} className="text-right tabular-nums">
-                {row[col.key] > 0 ? formatCurrency(row[col.key]) : "—"}
+              <TableHead
+                key={col.key}
+                className={`text-right${col.key !== "total" ? " hidden sm:table-cell" : ""}`}
+              >
+                {col.label}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow key={row.vendorId}>
+              <TableCell className="font-medium">{row.vendorName}</TableCell>
+              {COLUMNS.map((col) => (
+                <TableCell
+                  key={col.key}
+                  className={`text-right tabular-nums${col.key !== "total" ? " hidden sm:table-cell" : ""}`}
+                >
+                  {row[col.key] > 0 ? formatCurrency(row[col.key]) : "—"}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+          <TableRow className="border-t-2 font-semibold">
+            <TableCell>Total</TableCell>
+            {COLUMNS.map((col) => (
+              <TableCell
+                key={col.key}
+                className={`text-right tabular-nums${col.key !== "total" ? " hidden sm:table-cell" : ""}`}
+              >
+                {totals[col.key] > 0 ? formatCurrency(totals[col.key]) : "—"}
               </TableCell>
             ))}
           </TableRow>
-        ))}
-        <TableRow className="border-t-2 font-semibold">
-          <TableCell>Total</TableCell>
-          {COLUMNS.map((col) => (
-            <TableCell key={col.key} className="text-right tabular-nums">
-              {totals[col.key] > 0 ? formatCurrency(totals[col.key]) : "—"}
-            </TableCell>
-          ))}
-        </TableRow>
-      </TableBody>
-    </Table>
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
 export function AgingTableSkeleton() {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          {SKELETON_HEADERS.map((h) => (
-            <TableHead key={h}>{h}</TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <TableRow key={i}>
-            {Array.from({ length: SKELETON_HEADERS.length }).map((_, j) => (
-              <TableCell key={j}>
-                <Skeleton className="h-4 w-20" />
-              </TableCell>
+    <div className="overflow-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            {SKELETON_HEADERS.map((h, i) => (
+              <TableHead
+                key={h}
+                className={i > 0 && i < SKELETON_HEADERS.length - 1 ? "hidden sm:table-cell" : ""}
+              >
+                {h}
+              </TableHead>
             ))}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <TableRow key={i}>
+              {Array.from({ length: SKELETON_HEADERS.length }).map((_, j) => (
+                <TableCell
+                  key={j}
+                  className={j > 0 && j < SKELETON_HEADERS.length - 1 ? "hidden sm:table-cell" : ""}
+                >
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

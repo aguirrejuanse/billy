@@ -1,5 +1,6 @@
 import Papa from "papaparse";
 import { AGING_BUCKETS } from "@/lib/aging";
+import { todayLocalISO } from "@/lib/formatters";
 import type { BillWithRelations, AgingRow } from "@/types";
 
 export function billsToCsv(bills: BillWithRelations[]): string {
@@ -25,6 +26,13 @@ export function agingToCsv(rows: AgingRow[]): string {
     total: row.total,
   }));
   return Papa.unparse(data);
+}
+
+export function exportBillsCsv(bills: BillWithRelations[], username: string): void {
+  const csv = billsToCsv(bills);
+  const date = todayLocalISO();
+  const slug = username.toLowerCase().replace(/\s+/g, "-");
+  downloadCsv(csv, `${slug}-${date}-billy.csv`);
 }
 
 export function downloadCsv(content: string, filename: string): void {

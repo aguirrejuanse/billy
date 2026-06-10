@@ -101,6 +101,7 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
             name="amount"
             label="Amount"
             type="number"
+            inputMode="decimal"
             step="0.01"
             min="0"
             placeholder="0.00"
@@ -108,7 +109,7 @@ export function CreateBillForm({ onSuccess }: CreateBillFormProps) {
           <FormSelect name="currency" label="Currency" options={CURRENCY_OPTIONS} />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <FormDateInput name="invoiceDate" label="Invoice Date" />
           <FormDateInput name="dueDate" label="Due Date" min={invoiceDate} />
         </div>

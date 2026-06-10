@@ -16,12 +16,16 @@ const navItems = [
   { href: "/reports", label: "Reports", icon: BarChart3 },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onNavClick?: () => void;
+}
+
+export function Sidebar({ onNavClick }: SidebarProps) {
   const pathname = usePathname();
   const { isDemo, user, signOut } = useDemoSession();
 
   return (
-    <aside className="w-56 shrink-0 flex flex-col h-screen border-r bg-sidebar">
+    <aside className="w-56 shrink-0 flex flex-col h-full border-r bg-sidebar">
       <div className="h-14 px-6 flex items-center gap-2 border-b border-sidebar-border">
         <div className="size-6 rounded bg-sidebar-primary flex items-center justify-center">
           <span className="text-xs font-bold text-sidebar-primary-foreground">B</span>
@@ -31,11 +35,12 @@ export function Sidebar() {
         </span>
       </div>
 
-      <nav className="flex-1 px-2 py-4 space-y-0.5">
+      <nav data-tour="sidebar-nav" className="flex-1 px-2 py-4 space-y-0.5">
         {navItems.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
+            onClick={onNavClick}
             data-tour={href === "/reports" ? "sidebar-reports" : undefined}
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",

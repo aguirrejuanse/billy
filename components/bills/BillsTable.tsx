@@ -54,11 +54,11 @@ export function BillsTableSkeleton({ selectable = false }: BillsTableSkeletonPro
           <TableRow>
             {selectable && <TableHead className="w-10" />}
             <TableHead>Vendor</TableHead>
-            <TableHead>Bill #</TableHead>
+            <TableHead className="hidden md:table-cell">Bill #</TableHead>
             <TableHead>Description</TableHead>
             <TableHead className="text-right">Amount</TableHead>
             <TableHead className="w-35">Status</TableHead>
-            <TableHead>Due Date</TableHead>
+            <TableHead className="hidden md:table-cell">Due Date</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -73,7 +73,7 @@ export function BillsTableSkeleton({ selectable = false }: BillsTableSkeletonPro
               <TableCell>
                 <Skeleton className="h-4 w-28" />
               </TableCell>
-              <TableCell>
+              <TableCell className="hidden md:table-cell">
                 <Skeleton className="h-4 w-20" />
               </TableCell>
               <TableCell>
@@ -85,7 +85,7 @@ export function BillsTableSkeleton({ selectable = false }: BillsTableSkeletonPro
               <TableCell>
                 <Skeleton className="h-5 w-20 rounded-full" />
               </TableCell>
-              <TableCell>
+              <TableCell className="hidden md:table-cell">
                 <Skeleton className="h-4 w-24" />
               </TableCell>
               <TableCell>
@@ -144,11 +144,11 @@ export function BillsTable({
                   </TableHead>
                 )}
                 <TableHead>Vendor</TableHead>
-                <TableHead>Bill #</TableHead>
+                <TableHead className="hidden md:table-cell">Bill #</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="w-35">Status</TableHead>
-                <TableHead>Due Date</TableHead>
+                <TableHead className="hidden md:table-cell">Due Date</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -169,7 +169,7 @@ export function BillsTable({
                     </TableCell>
                   )}
                   <TableCell className="font-medium">{bill.vendor?.name ?? "—"}</TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
+                  <TableCell className="hidden md:table-cell font-mono text-xs text-muted-foreground">
                     {bill.number}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
@@ -181,7 +181,9 @@ export function BillsTable({
                   <TableCell>
                     <BillStatusBadge status={bill.status} />
                   </TableCell>
-                  <TableCell className="text-sm tabular-nums">{formatDate(bill.dueDate)}</TableCell>
+                  <TableCell className="hidden md:table-cell text-sm tabular-nums">
+                    {formatDate(bill.dueDate)}
+                  </TableCell>
                   <TableCell>
                     <Link
                       href={`/bills/${bill.id}`}

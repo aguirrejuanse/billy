@@ -12,15 +12,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ReportHeader } from "@/components/reports/ReportHeader";
 import { agingToCsv, downloadCsv } from "@/lib/export-utils";
+import { useDemoSession } from "@/hooks/useDemoSession";
 
 const sectionTitle = "text-sm font-semibold text-muted-foreground uppercase tracking-wide";
+const pageStyles = "space-y-6 h-full overflow-y-auto scrollbar-hide pb-6 px-0.5 pt-1";
 
 export default function ReportsPage() {
   const { data, isLoading, isError, refetch, endDate, setEndDate } = useAgingReportQuery();
+  const { user } = useDemoSession();
 
   if (isLoading) {
     return (
-      <div className="space-y-6 h-full overflow-y-auto scrollbar-hide">
+      <div className={pageStyles}>
         <AgingSummaryCardsSkeleton />
         <AgingTableSkeleton />
       </div>
@@ -29,11 +32,13 @@ export default function ReportsPage() {
 
   if (isError) {
     return (
-      <div className="flex flex-col items-start gap-2">
-        <p className="text-sm text-destructive">Failed to load aging report.</p>
-        <Button variant="link" className="p-0 h-auto" onClick={() => refetch()}>
-          Try again
-        </Button>
+      <div className={pageStyles}>
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-sm text-destructive">Failed to load aging report.</p>
+          <Button variant="link" className="p-0 h-auto" onClick={() => refetch()}>
+            Try again
+          </Button>
+        </div>
       </div>
     );
   }
@@ -41,11 +46,14 @@ export default function ReportsPage() {
   if (!data) return null;
 
   return (
-    <div className="space-y-6 h-full overflow-y-auto scrollbar-hide">
+    <div className={pageStyles}>
       <ReportHeader
         endDate={endDate}
         onEndDateChange={setEndDate}
-        onExport={() => downloadCsv(agingToCsv(data.rows), `ap-aging-${endDate}.csv`)}
+        onExport={() => {
+          const username = user?.name?.toLowerCase().replace(/\s+/g, "-") ?? "export";
+          downloadCsv(agingToCsv(data.rows), `${username}-${endDate}-billy-aging.csv`);
+        }}
         exportDisabled={data.rows.length === 0}
       />
 
@@ -53,7 +61,7 @@ export default function ReportsPage() {
       <AgingSummaryCards summary={data.summary} />
 
       <h2 className={sectionTitle}>Aging Breakdown</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-6">
             <AgingDistributionChart rows={data.rows} />

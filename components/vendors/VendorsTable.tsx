@@ -24,8 +24,8 @@ interface VendorsTableProps {
 const COLUMNS = (
   <TableRow>
     <TableHead>Name</TableHead>
-    <TableHead>Email</TableHead>
-    <TableHead>Payment Method</TableHead>
+    <TableHead className="hidden md:table-cell">Email</TableHead>
+    <TableHead className="hidden md:table-cell">Payment Method</TableHead>
     <TableHead>Type</TableHead>
     <TableHead />
   </TableRow>
@@ -83,10 +83,10 @@ export function VendorsTable({ vendors, isLoading, error, onRetry, onEdit }: Ven
               {vendors.map((vendor) => (
                 <TableRow key={vendor.id} className="hover:bg-muted/40 transition-colors">
                   <TableCell className="font-medium">{vendor.name}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                     {vendor.email ?? "—"}
                   </TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell className="hidden md:table-cell text-sm">
                     {vendor.paymentMethods.map((m) => paymentMethodLabels[m]).join(", ")}
                   </TableCell>
                   <TableCell>

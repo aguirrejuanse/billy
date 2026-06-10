@@ -34,7 +34,7 @@ export function BillDetailSkeleton() {
 
 export function BillDetail({ bill, isFetching }: BillDetailProps) {
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6 max-w-3xl overflow-y-auto h-full pb-6">
       <Link
         href="/bills"
         className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -42,7 +42,7 @@ export function BillDetail({ bill, isFetching }: BillDetailProps) {
         ← Back
       </Link>
 
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">{bill.number}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
