@@ -34,7 +34,7 @@ export function BillDetailSkeleton() {
 
 export function BillDetail({ bill, isFetching }: BillDetailProps) {
   return (
-    <div className="space-y-6 max-w-3xl overflow-y-auto h-full pb-6">
+    <div className="space-y-6 max-w-3xl pb-6">
       <Link
         href="/bills"
         className="text-sm text-muted-foreground hover:text-foreground transition-colors"

@@ -1,11 +1,7 @@
-import {
-  formatCurrency,
-  formatDate,
-  paymentMethodLabels,
-  paymentStatusLabels,
-} from "@/lib/formatters";
+import { formatCurrency, formatDate, paymentMethodLabels } from "@/lib/formatters";
 import type { Payment } from "@/types";
 import { Field } from "./Field";
+import { PaymentStatusBadge } from "@/components/payments/PaymentStatusBadge";
 
 interface PaymentInfoProps {
   payment: Payment;
@@ -17,7 +13,7 @@ export function PaymentInfo({ payment, currency }: PaymentInfoProps) {
     <section className="space-y-2">
       <h2 className="text-sm font-medium">Payment</h2>
       <div className="grid grid-cols-2 gap-x-8 gap-y-4 border rounded-lg p-4">
-        <Field label="Status" value={paymentStatusLabels[payment.status] ?? payment.status} />
+        <Field label="Status" value={<PaymentStatusBadge status={payment.status} />} />
         <Field
           label="Method"
           value={paymentMethodLabels[payment.paymentMethod] ?? payment.paymentMethod}

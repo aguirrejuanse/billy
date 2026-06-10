@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
+
 interface FieldProps {
   label: string;
-  value: string;
+  value: ReactNode;
   className?: string;
 }
 

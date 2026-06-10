@@ -18,5 +18,9 @@ export default function BillDetailPage({ params }: BillDetailPageProps) {
 
   if (error || !bill) return <BillError />;
 
-  return <BillDetail bill={bill} isFetching={isFetching} />;
+  return (
+    <div className="overflow-y-auto h-full scrollbar-hide">
+      <BillDetail bill={bill} isFetching={isFetching} />
+    </div>
+  );
 }
