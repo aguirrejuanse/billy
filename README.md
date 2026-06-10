@@ -4,7 +4,8 @@ Billy is an accounts payable tool for operations teams that need to track, appro
 
 **Live demo:** https://billy-takehome.vercel.app/bills
 
-**Demo video:** https://www.loom.com/share/b3a173de260a4c2592dafda974f42057
+**V2 Demo video:** https://www.loom.com/share/d65325e7e5e0495d9da2151a6afe265a
+**V1 Demo video:** https://www.loom.com/share/b3a173de260a4c2592dafda974f42057
 
 ---
 
