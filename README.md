@@ -8,6 +8,18 @@ Billy is an accounts payable tool for operations teams that need to track, appro
 
 ---
 
+## Features | What you can do
+
+- **Demo login** — one click, no signup required
+- **Bills** — create, submit, approve, reject, archive; import from CSV; export to CSV
+- **Payments** — release, mark as paid, retry failed payments
+- **Vendors** — create and manage vendors with payment methods
+- **Reports** — AP Aging Report with charts, bucket breakdown, and CSV export
+- **Dark mode** — system-aware theme toggle
+- **Mobile** — fully responsive on iPhone and Android
+
+---
+
 ## Setup
 
 ### Prerequisites
@@ -190,7 +202,7 @@ See [`docs/ai-workflow.md`](./docs/ai-workflow.md) for the full breakdown: skill
 | US-07 | As an AP Manager, I want to submit a draft bill for approval so it enters the approval queue.                                    | ✅ Done |
 | US-08 | As a Finance Manager, I want to see a list of all payments so I can track fund transfers and their status.                       | ✅ Done |
 | US-09 | As an AP Manager, I want to manage vendors so I can register and update the companies I pay.                                     | ✅ Done |
-| US-10 | As a user, I want a polished UI with consistent colors and visual hierarchy so the app feels production-ready.                   | 🔲 Todo |
+| US-10 | As a user, I want a polished UI with consistent colors and visual hierarchy so the app feels production-ready.                   | ✅ Done |
 | US-11 | As a reviewer, I want to try the app instantly without signing up so I can evaluate it without friction.                         | ✅ Done |
 | US-13 | As a Finance Manager, I want to mark payments as paid or retry failed payments so I can keep payment statuses accurate.          | ✅ Done |
 | US-14 | As an AP Manager, I want to archive rejected bills so I can keep my active queue clean.                                          | ✅ Done |
