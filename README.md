@@ -15,8 +15,8 @@ Billy is an accounts payable tool for operations teams that need to track, appro
 - **Payments** — release, mark as paid, retry failed payments
 - **Vendors** — create and manage vendors with payment methods
 - **Reports** — AP Aging Report with charts, bucket breakdown, and CSV export
-- **Dark mode** — system-aware theme toggle
-- **Mobile** — fully responsive on iPhone and Android
+- **Dark mode**
+- **Responsive design**
 
 ---
 
