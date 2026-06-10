@@ -9,8 +9,9 @@ export function usePaymentActionMutation(paymentId: string) {
 
   return useMutation<PaymentWithRelations, ApiError, PaymentAction>({
     mutationFn: (action) => paymentActionService(paymentId, action),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["bills", data.billId] });
     },
   });
 }
