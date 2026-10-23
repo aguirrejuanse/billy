@@ -2,7 +2,7 @@
 
 Billy is an accounts payable tool for operations teams that need to track, approve, and pay vendor invoices. The core insight: **a Bill and a Payment are two distinct domain objects with independent lifecycles**. A Bill is an accounting fact (the invoice). A Payment is the fund transfer. Conflating them leads to broken workflows — Billy keeps them separate from the start.
 
-**Live demo:** https://billy.vercel.app/bills
+**Live demo:** https://billy-aguirrejuanses-projects.vercel.app/bills
 
 **V2 Demo video:** https://www.loom.com/share/d65325e7e5e0495d9da2151a6afe265a
 
