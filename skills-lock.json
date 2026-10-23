@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "nextjs-api-routes": {
+      "source": "venture-formations/aiprodaily",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/nextjs-api-routes/SKILL.md",
+      "computedHash": "556b69ccaa669792753041a5d6755f8bb3e0bbbd445bc1e1e90d446d34f200df"
+    }
+  }
+}

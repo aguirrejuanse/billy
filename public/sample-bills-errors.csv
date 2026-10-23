@@ -1,0 +1,8 @@
+vendor_name,number,amount,currency,invoice_date,due_date,description,payment_type
+Acme Corp,INV-001,1500.00,USD,2026-01-15,2026-02-15,Office supplies,ach
+Global Supplies,INV-002,-200.00,USD,2026-01-20,2026-02-20,Software licenses,wire
+,INV-003,500.00,USD,2026-02-01,2026-02-15,Consulting,ach
+Tech Vendors,INV-004,999.99,USD,2026-03-10,2026-02-01,Due before invoice,card
+Contoso,INV-005,1200.00,PESOS,2026-03-15,2026-04-01,Bad currency,ach
+Office Depot,INV-006,300.00,USD,not-a-date,2026-04-10,Bad invoice date,wire
+Startup Co,INV-007,75000.00,USD,2026-04-01,2026-04-30,Valid large amount,check

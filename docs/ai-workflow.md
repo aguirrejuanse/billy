@@ -1,4 +1,4 @@
-# AI Workflow — Billy Takehome
+# AI Workflow — Billy
 
 This document describes how Claude Code was used throughout this project: which skills were active, where their impact is visible in the repo, and which skills would be worth building for future projects of this type.
 

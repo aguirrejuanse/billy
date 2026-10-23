@@ -1,4 +1,4 @@
-# Bill Pay Takehome — Plan Técnico Completo
+# Billy — Technical Plan
 
 ## Sesión de Planificación
 
@@ -8,18 +8,21 @@
 ### Decisiones tomadas en la charla
 
 **Stack:**
+
 - Empezamos evaluando Next.js + API Routes vs. Next.js + server Node separado → elegimos **Next.js 15 App Router con API Routes** (menos overhead, un solo repo, sin CORS)
-- Auth: discutimos Clerk vs. NextAuth. Clerk ganó para el takehome por velocidad de setup. Para producción a largo plazo: Clerk si querés delegar auth management, NextAuth si querés control total y cero dependencias externas.
+- Auth: discutimos Clerk vs. NextAuth. Clerk ganó for setup speed. Para producción a largo plazo: Clerk si querés delegar auth management, NextAuth si querés control total y cero dependencias externas.
 - UI: styled-components choca con App Router por el modelo de Server Components (CSS-in-JS con runtime). Elegimos **shadcn/ui + Tailwind** porque el evaluador mide design/UI explícitamente y shadcn tiene estilo más cercano a Ramp/Linear.
 - ORM: **Drizzle** sobre Prisma — más ligero, schema en TypeScript puro, queries type-safe, setup más rápido.
 - DB: **Neon** (Postgres serverless) — gratuito, compatible con Vercel, sin fricción de deploy.
 
 **Product understanding:**
+
 - Aclaramos la diferencia entre el flujo sin approval (Draft → Scheduled → Paid) vs. el flujo real con approval (Draft → Awaiting Approval → Approved → Payment auto-creado).
 - Insight clave: **Bill y Payment son dos objetos de dominio distintos con lifecycles propios**. La Bill es el hecho contable; el Payment es la transferencia de fondos. Se crean en la misma transaction DB cuando se aprueba una Bill.
 - El AP Aging Report se incluyó en el MVP como señal de "product taste" — es una feature real que todo equipo de finanzas necesita.
 
 **Scope:**
+
 - Decidimos incluir el approval flow simplificado: el mismo usuario puede aprobar sus propias bills. En producción sería un aprobador distinto — se documenta en el README como decisión consciente.
 - OUT explícito: OCR, multi-approver chains, pagos reales (ACH/wire), ERP sync, multi-entity.
 
@@ -27,7 +30,7 @@
 
 ## Context
 
-Take-home challenge para Trashlab (SaaS para gestión de flotas de residuos). El evaluador mide: product taste, design/UI, scope judgment, UX quality, sistemas simples y robustos, output crudo.
+Full-stack product exercise. El evaluador mide: product taste, design/UI, scope judgment, UX quality, sistemas simples y robustos, output crudo.
 
 El producto es un **Accounts Payable (AP) manager** inspirado en Ramp Bill Pay. El insight central del producto es que hay **dos objetos de dominio distintos** con lifecycles propios:
 
@@ -40,15 +43,15 @@ Esta separación demuestra product understanding. Si modelás eso bien, el evalu
 
 ## Stack (decidido)
 
-| Capa | Tecnología | Razón |
-|------|-----------|-------|
-| Framework | Next.js 15 App Router | API Routes incluidas, no necesitás server Node separado |
-| Lenguaje | TypeScript | |
-| UI | shadcn/ui + Tailwind CSS | Estilo tipo Ramp/Linear, evaluador mide design explícitamente |
-| ORM | Drizzle ORM | Ligero, schema en TS puro, queries type-safe |
-| DB | Postgres (Neon serverless) | Gratuito, serverless, compatible con Vercel |
-| Auth | Clerk | Auth listo en 20min, enfocás tiempo en el producto |
-| Deploy | Vercel + Neon | Gratuitos, el evaluador puede testear sin setup |
+| Capa      | Tecnología                 | Razón                                                         |
+| --------- | -------------------------- | ------------------------------------------------------------- |
+| Framework | Next.js 15 App Router      | API Routes incluidas, no necesitás server Node separado       |
+| Lenguaje  | TypeScript                 |                                                               |
+| UI        | shadcn/ui + Tailwind CSS   | Estilo tipo Ramp/Linear, evaluador mide design explícitamente |
+| ORM       | Drizzle ORM                | Ligero, schema en TS puro, queries type-safe                  |
+| DB        | Postgres (Neon serverless) | Gratuito, serverless, compatible con Vercel                   |
+| Auth      | Clerk                      | Auth listo en 20min, enfocás tiempo en el producto            |
+| Deploy    | Vercel + Neon              | Gratuitos, el evaluador puede testear sin setup               |
 
 **Por qué NO server Node separado:** overhead de setup (CORS, dos procesos, dos puertos) sin beneficio real. API Routes de Next.js 15 son un backend real, tipado, en el mismo repo.
 
@@ -57,6 +60,7 @@ Esta separación demuestra product understanding. Si modelás eso bien, el evalu
 ## Scope MVP
 
 ### IN
+
 - Auth (Clerk) — login/logout
 - Bills table con tabs: Drafts | Awaiting Approval | For Payment | History
 - Filtros: status, vendor, amount range, due date range
@@ -71,6 +75,7 @@ Esta separación demuestra product understanding. Si modelás eso bien, el evalu
 - Seed data: ~20 bills en distintos estados, 7 vendors realistas
 
 ### OUT (documentar en README con justificación)
+
 - OCR / file upload (requiere S3 + Textract)
 - Multi-approver chains (requiere workflow engine)
 - Pagos reales ACH/wire (requiere Plaid/Stripe Treasury)
@@ -102,6 +107,7 @@ payments (id uuid PK, bill_id → bills, vendor_id → vendors, amount numeric(1
 ```
 
 **Decisiones clave:**
+
 - `status` como enum Postgres, no string libre — gating de transiciones en la API
 - `amount` como `numeric(12,2)`, no `float` — evita errores de punto flotante en dinero
 - `bill_line_items` con `CASCADE` — al eliminar una bill, se eliminan sus line items
@@ -135,6 +141,7 @@ Payment lifecycle (auto-creado al aprobar Bill):
 ```
 
 La transición **approve** es atómica (DB transaction):
+
 1. Bill status → `approved`
 2. INSERT payment con `status = 'scheduled'`, `scheduled_date = bill.due_date`
 
@@ -229,9 +236,11 @@ Cualquier transición inválida devuelve 400 con mensaje claro.
 ## Seed Data
 
 7 vendors con nombres realistas de waste management:
+
 - WasteStream Solutions, RecycleCore LLC, GreenHaul Transport, Apex Landfill Services, EcoSort Technologies, Municipal Bin Rentals, CleanCity Contractors
 
 ~20 bills distribuidas:
+
 - 4 Draft (recientes, montos chicos)
 - 4 Awaiting Approval
 - 5 Approved (mix on-time y overdue — para que AP Aging sea no trivial)
@@ -245,6 +254,7 @@ Payments auto-generados para bills aprobadas (2 paid, 1 failed para realismo).
 ## Timeline — 4 días
 
 ### Día 1 — Foundation
+
 - Bootstrap proyecto, instalar deps, shadcn init
 - Drizzle schema + migración
 - Clerk auth + middleware + root layout
@@ -252,12 +262,14 @@ Payments auto-generados para bills aprobadas (2 paid, 1 failed para realismo).
 - Types + formatters + validators
 
 ### Día 2 — Bills Core
+
 - API routes: bills CRUD + lifecycle actions
 - Status badges
 - BillsTable + columns + filtros
 - BillCreateSheet (slide-over)
 
 ### Día 3 — Features Restantes
+
 - Bill detail page
 - Payments table + acciones
 - Vendors CRUD
@@ -265,6 +277,7 @@ Payments auto-generados para bills aprobadas (2 paid, 1 failed para realismo).
 - Seed data
 
 ### Día 4 — Polish + Ship
+
 - Empty states + loading skeletons
 - Error handling + toast notifications
 - README
@@ -294,18 +307,18 @@ Env vars en Vercel: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `DA
 
 ## Verificación End-to-End
 
-| Feature | Verificar |
-|---------|-----------|
-| Auth | Sign in, sign out, redirect a /bills |
-| Tabs | Cada tab muestra solo bills del status correcto |
-| Crear bill | Sheet abre, valida, bill aparece en Drafts |
-| Submit | Draft → Awaiting Approval |
-| Approve | Awaiting → For Payment; Payment auto-creado |
-| Reject | Awaiting → History con badge Rejected |
-| Archive | Draft/Rejected → History con badge Archived |
-| Bill detail | Datos correctos, botones correctos por status |
-| Payments | Bills aprobadas tienen payment; status updates funcionan |
-| Vendors | CRUD funciona; vendor aparece en create form |
-| AP Aging | Bills vencidas agrupadas correctamente, totales exactos |
-| Filtros | Vendor filter, amount range, date range funcionan |
-| Sorting | Click en column header ordena correctamente |
+| Feature     | Verificar                                                |
+| ----------- | -------------------------------------------------------- |
+| Auth        | Sign in, sign out, redirect a /bills                     |
+| Tabs        | Cada tab muestra solo bills del status correcto          |
+| Crear bill  | Sheet abre, valida, bill aparece en Drafts               |
+| Submit      | Draft → Awaiting Approval                                |
+| Approve     | Awaiting → For Payment; Payment auto-creado              |
+| Reject      | Awaiting → History con badge Rejected                    |
+| Archive     | Draft/Rejected → History con badge Archived              |
+| Bill detail | Datos correctos, botones correctos por status            |
+| Payments    | Bills aprobadas tienen payment; status updates funcionan |
+| Vendors     | CRUD funciona; vendor aparece en create form             |
+| AP Aging    | Bills vencidas agrupadas correctamente, totales exactos  |
+| Filtros     | Vendor filter, amount range, date range funcionan        |
+| Sorting     | Click en column header ordena correctamente              |

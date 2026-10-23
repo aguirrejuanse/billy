@@ -1,8 +1,8 @@
-# Billy — AP Manager Takehome
+# Billy — AP Manager
 
 ## What is Billy?
 
-Billy is an Accounts Payable manager built as a takehome project for Trashlab. It allows AP teams to manage vendor bills through their full lifecycle: creation, approval, rejection, and payment scheduling.
+Billy is an Accounts Payable manager for operations teams. It allows AP teams to manage vendor bills through their full lifecycle: creation, approval, rejection, and payment scheduling.
 
 ## Tech Stack
 
